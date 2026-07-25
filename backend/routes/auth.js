@@ -1,56 +1,37 @@
-// import express from "express";
-// import db from "../db.js";
-
-// const router = express.Router();
-
-// router.post("/login", (req, res) => {
-//   const { email, password } = req.body;
-
-//   const sql = "SELECT * FROM users WHERE email = ? AND password = ?";
-
-//   db.query(sql, [email, password], (err, results) => {
-//     if (err) {
-//       console.error("Database error:", err);
-//       return res
-//         .status(500)
-//         .json({ success: false, message: "Database error" });
-//     }
-
-//     if (results.length > 0) {
-//       res.json({ success: true, user: results[0] });
-//     } else {
-//       res.json({ success: false, message: "Invalid email or password" });
-//     }
-//   });
-// });
-
-// export default router;
-
 import express from "express";
-import db from "../db.js";
+import bcrypt from "bcrypt";
+import pool, { sql } from "../db.js";
 
 const router = express.Router();
 
-router.post("/login", (req, res) => {
+router.post("/login", async (req, res) => {
   const { email, password } = req.body;
 
-  const sql = "SELECT * FROM users WHERE email = ? AND password = ?";
+  try {
+    const result = await pool
+      .request()
+      .input("email", sql.VarChar, email)
+      .query("SELECT * FROM users WHERE email = @email");
 
-  db.query(sql, [email, password], (err, results) => {
-    if (err) {
-      console.error("Database error:", err);
-      return res.status(500).json({ message: "Database error" });
-    }
+    if (result.recordset.length > 0) {
+      const user = result.recordset[0];
 
-    if (results.length > 0) {
-      const user = results[0];
+      // Compare plaintext input against bcrypt hash
+      const match = await bcrypt.compare(password, user.password);
+      if (!match) {
+        return res.status(400).json({
+          success: false,
+          message: "Invalid email or password",
+        });
+      }
 
-      // ⭐ SAVE USER SESSION HERE
+      // Save user session
       req.session.user = {
         id: user.id,
         fullname: user.fullname,
         email: user.email,
         phone: user.phone,
+        college_name: user.college_name,
       };
 
       console.log("Session Created:", req.session.user);
@@ -62,11 +43,23 @@ router.post("/login", (req, res) => {
       });
     }
 
-    // Wrong email/password
-    res.status(400).json({
+    return res.status(400).json({
       success: false,
       message: "Invalid email or password",
     });
+  } catch (err) {
+    console.error("Database error:", err);
+    return res.status(500).json({ message: "Database error" });
+  }
+});
+
+router.post("/logout", (req, res) => {
+  req.session.destroy((err) => {
+    if (err) {
+      return res.status(500).json({ message: "Logout failed" });
+    }
+    res.clearCookie("connect.sid");
+    res.json({ success: true, message: "Logged out" });
   });
 });
 
