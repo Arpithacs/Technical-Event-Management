@@ -5,10 +5,10 @@
 =============================== */
 .events-page {
   min-height: 100vh;
-  background: linear-gradient(135deg, #fff0f5, #f5f7ff);
+  background: var(--bg-page);
   padding: 120px 0;
   font-family: "Poppins", sans-serif;
-  color: #222;
+  color: var(--text-primary);
 }
 
 /* ================================
@@ -47,6 +47,7 @@
   grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
   gap: 30px;
 }
+.event-filters{display:flex;gap:10px;flex-wrap:wrap;margin:0 0 24px}.event-filters input{flex:1;min-width:220px;padding:10px;border:1px solid var(--border);border-radius:8px}.event-filters button{background:#fff;border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text-secondary);cursor:pointer}.event-filters .filter-active{border-color:var(--color-accent);color:var(--color-accent);background:#EFF6FF}.register-btn.registered{background:var(--color-success)!important}.register-btn.disabled:not(.registered){background:#94A3B8!important}
 
 /* ================================
    EVENT CARD (Matches Portal Card)
@@ -65,17 +66,36 @@
   box-shadow: 0 6px 22px rgba(0, 0, 0, 0.12);
 }
 
-/* Category Badge */
+/* Category Badge — base */
 .event-category {
   display: inline-block;
-  background: #ffe6f0;
-  color: #ff3b9d;
   padding: 6px 14px;
   border-radius: 20px;
   font-size: 13px;
   margin-bottom: 12px;
   font-weight: 600;
-  border: 1px solid #ffd1e6;
+}
+
+/* Scope color variants */
+.scope-intra {
+  background: #e8f5e9;
+  color: #2e7d32;
+  border: 1px solid #c8e6c9;
+}
+.scope-inter {
+  background: #fff3e0;
+  color: #b45309;
+  border: 1px solid #fed7aa;
+}
+.scope-zonal {
+  background: #ede9fe;
+  color: #5b21b6;
+  border: 1px solid #ddd6fe;
+}
+.scope-general {
+  background: #fff3e0;
+  color: #e65100;
+  border: 1px solid #ffe0b2;
 }
 
 /* Title */
@@ -119,7 +139,29 @@
   transition: 0.25s ease;
 }
 
-.register-btn:hover {
+.register-btn:hover:not(.disabled) {
   opacity: 0.9;
   transform: translateY(-2px);
+}
+
+/* Full / disabled event card */
+.event-card.event-full {
+  opacity: 0.7;
+  border-color: #ddd;
+}
+
+.event-card.event-full:hover {
+  transform: none;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+}
+
+.register-btn.disabled {
+  background: #ccc;
+  cursor: not-allowed;
+  opacity: 1;
+}
+
+.seats-full {
+  color: #c62828 !important;
+  font-weight: 600;
 }

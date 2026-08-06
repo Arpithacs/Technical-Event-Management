@@ -1,112 +1,129 @@
-
+@import "./theme.css";
 
 /* ===============================
-   PAGE BACKGROUND
+   LANDING PAGE (Role Gate)
 =============================== */
-.signup-page {
+.landing-page {
   min-height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #fff0f5, #f5f7ff);
-  padding: 20px;
+  background: var(--bg-page);
+  padding: 100px 20px 40px;
 }
 
-/* ===============================
-   SIGNUP BOX
-=============================== */
-.signup-box {
-  background: #ffffff;
-  width: 420px;
-  border-radius: 18px;
-  padding: 40px 35px;
-  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.08);
-  border: 1px solid #ececec;
-  animation: fadeInUp 0.5s ease;
+.landing-container {
   text-align: center;
+  max-width: 900px;
+  width: 100%;
 }
 
-/* Title */
-.signup-box h1 {
-  font-size: 26px;
+.landing-title {
+  font-size: 2.2rem;
+  font-weight: 700;
   margin-bottom: 8px;
   color: #222;
 }
 
-/* Subtitle */
-.signup-box p {
+.landing-subtitle {
   color: #666;
-  margin-bottom: 28px;
+  margin-bottom: 44px;
+  font-size: 16px;
 }
 
-/* Inputs */
-.signup-box input {
-  width: 100%;
-  padding: 12px 14px;
-  margin-bottom: 15px;
-  border-radius: 10px;
-  border: 1px solid #ddd;
-  font-size: 15px;
-  background: #fafafa;
-  transition: 0.2s ease;
+.landing-grid {
+  display: flex;
+  gap: 30px;
+  justify-content: center;
+  flex-wrap: wrap;
+  align-items: stretch; /* equal-height cards */
 }
 
-.signup-box input:focus {
-  border-color: #7d3cff;
+.landing-card {
   background: #fff;
-  box-shadow: 0 0 8px rgba(125, 60, 255, 0.25);
-  outline: none;
+  border-radius: 18px;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.08);
+  padding: 44px 32px;
+  width: 340px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: 1.5px solid #f0f0f0;
+  display: flex;
+  flex-direction: column; /* push button to bottom for equal spacing */
+}
+
+.landing-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.12);
+  border-color: #d4b8ff;
+}
+
+.landing-icon {
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  margin: 0 auto 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.landing-icon.participant {
+  background: #ffe6f0;
+  color: #ff007f;
+}
+
+.landing-icon.organizer {
+  background: #ede7ff;
+  color: #7d3cff;
+}
+
+.landing-card h2 {
+  margin-bottom: 10px;
+  color: #222;
+  font-size: 1.3rem;
+}
+
+.landing-card p {
+  color: #666;
+  font-size: 14px;
+  line-height: 1.5;
+  margin-bottom: 22px;
+  flex: 1; /* fills remaining space so button sits at same vertical position */
+}
+
+.landing-btn {
+  border: none;
+  color: white;
+  padding: 11px 22px;
+  font-weight: 600;
+  font-size: 15px;
+  border-radius: 9px;
+  cursor: pointer;
+  width: 100%;
+  box-sizing: border-box; /* padding included in width — no overflow */
+  transition: all 0.3s ease;
+  pointer-events: none; /* card click handles navigation */
+}
+
+/* Both buttons share one gradient direction — tied to icon accent:
+   participant icon is pink → starts pink; organizer icon is purple → starts purple.
+   Both flow left-to-right with the SAME direction (90deg). */
+.participant-btn {
+  background: linear-gradient(90deg, #ff3b9d, #7d3cff);
+}
+
+.organizer-btn {
+  background: linear-gradient(90deg, #7d3cff, #ff3b9d);
 }
 
 /* ===============================
-   SIGNUP BUTTON (GRADIENT STYLE)
+   GLOBAL BODY
 =============================== */
-.signup-box button {
-  width: 100%;
-  padding: 12px;
-  border-radius: 10px;
-  border: none;
-  font-size: 16px;
-  color: white;
-  font-weight: 600;
-  cursor: pointer;
-  background: linear-gradient(90deg, #ff3b9d, #7d3cff);
-  transition: 0.3s ease;
-}
-
-.signup-box button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(125, 60, 255, 0.2);
-}
-
-/* Login Link */
-.login-redirect {
-  margin-top: 18px;
-  font-size: 14px;
-  color: #555;
-}
-
-.login-redirect a {
-  color: #7d3cff;
-  font-weight: 600;
-  text-decoration: none;
-}
-
-/* Animation */
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
 body {
   margin: 0;
   font-family: "Poppins", sans-serif;
-  background: #f5f7ff; /* clean neutral bg */
-  color: #222;
+  background: var(--bg-page);
+  color: var(--text-primary);
 }
+

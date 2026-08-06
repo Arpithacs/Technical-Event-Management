@@ -74,12 +74,15 @@ router.get("/summary", isOrganizer, async (req, res) => {
     const r4 = await pool.request()
       .query("SELECT COUNT(*) AS completed FROM events WHERE [date] < GETDATE()");
 
+    const r5 = await pool.request().query("SELECT COUNT(*) AS totalJudges FROM judge");
+
     return res.json({
       success: true,
       totalEvents: r1.recordset[0]?.totalEvents || 0,
       totalParticipants: r2.recordset[0]?.totalParticipants || 0,
       upcoming: r3.recordset[0]?.upcoming || 0,
       completed: r4.recordset[0]?.completed || 0,
+      totalJudges: r5.recordset[0]?.totalJudges || 0,
     });
   } catch (err) {
     return res.status(500).json({ error: err.message });
@@ -96,6 +99,7 @@ router.get("/registrations", isOrganizer, async (req, res) => {
         r.id AS registration_id,
         r.event_id,
         e.event_name,
+        e.event_scope,
         r.fullname,
         r.email,
         r.phone,
@@ -169,7 +173,7 @@ router.post("/add-event", isOrganizer, async (req, res) => {
 /* --------------------------------------
    GET ALL EVENTS  (includes new fields)
 --------------------------------------- */
-router.get("/events", isOrganizer, async (req, res) => {
+router.get("/events", async (req, res) => {
   try {
     const result = await pool.request().query(`
       SELECT 
@@ -374,7 +378,13 @@ router.get("/event-sponsors/:eventId", isOrganizer, async (req, res) => {
 
 router.get("/judges", isOrganizer, async (req, res) => {
   try {
-    const result = await pool.request().query("SELECT * FROM judge ORDER BY judge_id DESC");
+    const result = await pool.request().query(`
+      SELECT j.judge_id, j.name, j.expertise_area, j.contact_no, j.event_id,
+             e.event_name AS assigned_event
+      FROM judge j
+      LEFT JOIN events e ON e.event_id = j.event_id
+      ORDER BY j.judge_id DESC
+    `);
     res.json({ success: true, judges: result.recordset });
   } catch (err) {
     res.status(500).json({ success: false, err: err.message });
@@ -382,8 +392,10 @@ router.get("/judges", isOrganizer, async (req, res) => {
 });
 
 router.post("/judges", isOrganizer, async (req, res) => {
-  const { name, expertise_area, contact_no, email } = req.body;
-  if (!name) return res.status(400).json({ success: false, message: "Name is required" });
+  const { name, expertise_area, contact_no, event_id } = req.body;
+  if (!name || !contact_no || !expertise_area || !event_id) {
+    return res.status(400).json({ success: false, message: "Name, contact, expertise area, and assigned event are required" });
+  }
 
   try {
     await pool
@@ -391,12 +403,32 @@ router.post("/judges", isOrganizer, async (req, res) => {
       .input("name", sql.VarChar, name)
       .input("expertise_area", sql.VarChar, expertise_area || null)
       .input("contact_no", sql.VarChar, contact_no || null)
-      .input("email", sql.VarChar, email || null)
+      .input("event_id", sql.Int, event_id)
       .query(`
-        INSERT INTO judge (name, expertise_area, contact_no, email)
-        VALUES (@name, @expertise_area, @contact_no, @email)
+        INSERT INTO judge (name, expertise_area, contact_no, event_id)
+        VALUES (@name, @expertise_area, @contact_no, @event_id)
       `);
     res.json({ success: true, message: "Judge added" });
+  } catch (err) {
+    res.status(500).json({ success: false, err: err.message });
+  }
+});
+
+router.put("/judges/:id", isOrganizer, async (req, res) => {
+  const { name, expertise_area, contact_no, event_id } = req.body;
+  if (!name || !contact_no || !expertise_area || !event_id) {
+    return res.status(400).json({ success: false, message: "Name, contact, expertise area, and assigned event are required" });
+  }
+  try {
+    await pool.request()
+      .input("judgeId", sql.Int, req.params.id)
+      .input("name", sql.VarChar, name)
+      .input("expertise_area", sql.VarChar, expertise_area)
+      .input("contact_no", sql.VarChar, contact_no)
+      .input("event_id", sql.Int, event_id)
+      .query(`UPDATE judge SET name = @name, expertise_area = @expertise_area,
+              contact_no = @contact_no, event_id = @event_id WHERE judge_id = @judgeId`);
+    res.json({ success: true, message: "Judge updated" });
   } catch (err) {
     res.status(500).json({ success: false, err: err.message });
   }

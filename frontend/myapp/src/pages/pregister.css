@@ -4,26 +4,11 @@
   background: linear-gradient(to bottom right, #1a0b2e, #16213e, #0f3460);
   color: #fff;
   font-family: "Poppins", sans-serif;
-  padding-top: 120px;
+  padding-top: 100px;
+  padding-bottom: 40px;
   display: flex;
   flex-direction: column;
   align-items: center;
-}
-
-.register-header {
-  text-align: center;
-  margin-bottom: 30px;
-}
-
-.register-header h1 {
-  font-size: 36px;
-  font-weight: 600;
-  margin-bottom: 10px;
-}
-
-.register-header p {
-  font-size: 18px;
-  color: #bbb;
 }
 
 .register-form {
@@ -37,6 +22,20 @@
   flex-direction: column;
   gap: 15px;
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+.register-form-title {
+  font-size: 24px;
+  font-weight: 600;
+  text-align: center;
+  margin: 0 0 4px;
+}
+
+.register-form-subtitle {
+  font-size: 14px;
+  color: #bbb;
+  text-align: center;
+  margin: 0 0 10px;
 }
 
 .register-form label {
@@ -86,4 +85,26 @@
 
 .submit-btn:hover {
   background: linear-gradient(to right, #ff4ebc, #a46bff);
+}
+
+/* Success / Error messages */
+.register-msg {
+  text-align: center;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  margin-top: 4px;
+}
+
+.register-msg.success {
+  background: rgba(40, 200, 80, 0.15);
+  color: #4ade80;
+  border: 1px solid rgba(40, 200, 80, 0.3);
+}
+
+.register-msg.error {
+  background: rgba(255, 60, 60, 0.15);
+  color: #ff6b6b;
+  border: 1px solid rgba(255, 60, 60, 0.3);
 }

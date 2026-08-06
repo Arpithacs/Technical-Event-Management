@@ -42,7 +42,10 @@
 
   border: 2px solid #eee;
   box-shadow: 0 5px 25px rgba(0, 0, 0, 0.06);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
+
+.stat-card:hover { transform: translateY(-4px); box-shadow: 0 12px 28px rgba(0, 0, 0, 0.12); }
 
 .stat-card h3 {
   color: #444;
@@ -73,6 +76,8 @@
 .green {
   border-color: #8af59c80;
 }
+
+.amber { border-color: #f6b93b80; }
 
 /* ============================
    PARTICIPANTS TABLE
@@ -273,4 +278,111 @@
   border: none;
   border-radius: 8px;
   cursor: pointer;
+}
+
+/* Scope pills */
+.scope-pill {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.scope-intra-college {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+.scope-inter-college {
+  background: #fff3e0;
+  color: #b45309;
+}
+.table-tools{display:flex;gap:12px;align-items:center;justify-content:space-between;margin:12px 0}.table-tools input{padding:10px 12px;border:1px solid var(--border);border-radius:8px;min-width:220px}.table-tools span{color:var(--text-muted);font-size:13px}
+
+.scope-zonal {
+  background: #ede9fe;
+  color: #5b21b6;
+}
+
+.allotment-layout { display: flex; gap: 30px; }
+.secondary-btn { padding: 12px; border: 1px solid #6a11cb; color: #6a11cb; background: #fff; font-weight: 600; border-radius: 10px; cursor: pointer; }
+.secondary-btn:hover { background: #f5f0ff; }
+
+/* Form labels */
+.event-form label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #444;
+  margin-bottom: -8px;
+}
+
+/* Form small label (used for sub-fields like deadline) */
+.form-label-small {
+  font-size: 13px;
+  color: #666;
+  margin-top: -4px;
+  margin-bottom: -6px;
+  font-weight: 500;
+}
+
+/* Edit / Delete buttons */
+.edit-btn {
+  padding: 6px 14px;
+  background: #e8f0fe;
+  color: #1a73e8;
+  border: 1px solid #b6d4fe;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  margin-right: 6px;
+}
+
+.edit-btn:hover {
+  background: #d2e3fc;
+}
+
+.delete-btn {
+  padding: 6px 14px;
+  background: #fce8e6;
+  color: #c5221f;
+  border: 1px solid #f5b7b1;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.delete-btn:hover {
+  background: #f8d7da;
+}
+
+/* Select in event form */
+.event-form select {
+  width: 100%;
+  padding: 12px;
+  border-radius: 10px;
+  border: 1.5px solid #ccc;
+  font-size: 15px;
+  outline: none;
+  transition: 0.2s;
+  background: #fff;
+  color: #333;
+}
+
+.event-form select:focus {
+  border-color: #6a11cb;
+}
+
+/* Select in popup */
+.popup-box select {
+  width: 100%;
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+  font-size: 14px;
+  background: #fff;
+  color: #333;
 }

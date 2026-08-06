@@ -90,8 +90,9 @@ CREATE TABLE judge (
     name           NVARCHAR(100)  NOT NULL,
     expertise_area NVARCHAR(200),
     contact_no     NVARCHAR(20),
-    email          NVARCHAR(100),
-    created_at     DATETIME       DEFAULT GETDATE()
+    event_id       INT NOT NULL,
+    created_at     DATETIME       DEFAULT GETDATE(),
+    CONSTRAINT FK_judge_event FOREIGN KEY (event_id) REFERENCES events(event_id) ON DELETE CASCADE
 );
 GO
 

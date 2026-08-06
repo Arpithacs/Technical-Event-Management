@@ -1,0 +1,47 @@
+:root {
+  --color-navbar: #0F172A;
+  --color-surface-alt: #1E293B;
+  --color-bg: #F8FAFC;
+  --color-accent: #2563EB;
+  --color-success: #16A34A;
+  --color-error: #DC2626;
+  --color-warning: #D97706;
+  --color-scope-intra: #0D9488;
+  --color-scope-inter: #B45309;
+  --color-scope-zonal: #4338CA;
+  --bg-page: var(--color-bg);
+  --bg-surface: #FFFFFF;
+  --bg-surface-soft: #F1F5F9;
+  --nav-bg: var(--color-navbar);
+  --text-primary: #0F172A;
+  --text-secondary: #475569;
+  --text-muted: #64748B;
+  --border: #E2E8F0;
+  --shadow-card: 0 8px 24px rgba(15, 23, 42, .08);
+  --shadow-card-hover: 0 14px 32px rgba(15, 23, 42, .12);
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+body { font-family: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif; font-weight: 400; background: var(--color-bg); color: var(--text-primary); }
+h1, h2, h3, h4 { font-weight: 600; }
+.brand-badge { width: 34px; height: 34px; display: inline-flex; align-items: center; justify-content: center; border-radius: 9px; background: #DBEAFE; color: var(--color-accent); font-size: 12px; font-weight: 700; letter-spacing: .04em; }
+.brand-wordmark { color: #fff; font-size: 1.05rem; font-weight: 600; line-height: 1; white-space: nowrap; }
+.brand-wordmark small { color: #CBD5E1; font-size: .72rem; font-weight: 400; margin-left: 4px; }
+.btn-primary, .add-btn, .save-btn, .auth-submit-btn, .register-btn, .contact-form button, .landing-btn, .portal-btn { background: var(--color-accent) !important; color: #fff; }
+.btn-secondary, .secondary-btn, .close-btn { background: transparent !important; border: 1px solid var(--color-accent) !important; color: var(--color-accent) !important; }
+.scope-intra, .scope-intra-college { background: #E6FFFB !important; color: var(--color-scope-intra) !important; border-color: #99F6E4 !important; }
+.scope-inter, .scope-inter-college { background: #FFF7ED !important; color: var(--color-scope-inter) !important; border-color: #FED7AA !important; }
+.scope-zonal { background: #EEF2FF !important; color: var(--color-scope-zonal) !important; border-color: #C7D2FE !important; }
+
+/* Institutional surface overrides for every application view. */
+.login-portal-page, .auth-page, .contact-container, .register-page, .dashboard-container, .org-dashboard, .events-page { background: var(--color-bg) !important; }
+.auth-title { background: none !important; -webkit-text-fill-color: var(--text-primary) !important; color: var(--text-primary) !important; }
+.styled-table thead tr { background: var(--color-surface-alt) !important; }
+.styled-table tbody tr:nth-child(even) { background: #F8FAFC !important; }
+.styled-table tbody tr:hover { background: #EFF6FF !important; }
+.event-form input:focus, .event-form textarea:focus, .event-form select:focus, .popup-box input:focus, .popup-box textarea:focus, .popup-box select:focus, .auth-form input:focus { border-color: var(--color-accent) !important; box-shadow: 0 0 0 3px rgba(37,99,235,.12) !important; }
+.landing-card, .portal-card, .auth-card, .contact-card, .event-card, .content-box, .event-form-section, .event-list-section { border-color: var(--border) !important; box-shadow: var(--shadow-card) !important; }
+.landing-icon.participant, .landing-icon.organizer, .portal-icon.participant, .portal-icon.organizer { background: #DBEAFE !important; color: var(--color-accent) !important; }
+.auth-tabs { border-color: var(--color-accent) !important; }
+.auth-tab { color: var(--color-accent) !important; }
+.auth-tab.active { background: var(--color-accent) !important; color: #fff !important; }

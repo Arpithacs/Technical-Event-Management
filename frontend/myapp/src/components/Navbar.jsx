@@ -1,41 +1,46 @@
-import React, { useEffect } from "react";
-import { Link, useLocation } from "react-router-dom";
+import React from "react";
+import { NavLink } from "react-router-dom";
 import "./Navbar.css";
-import ParticipantNavbar from "../components/ParticipantNavbar";
 
 const Navbar = () => {
-  const location = useLocation(); // ✅ moved inside component
-
-  useEffect(() => {
-    if (location.state?.selectedEvent) {
-      setFormData((prev) => ({
-        ...prev,
-        event: location.state.selectedEvent,
-      }));
-    }
-  }, [location]);
-
   return (
     <nav className="navbar">
-      <div className="logo">
-        <span className="code-icon">{"</>"}</span> TechFest Portal
-      </div>
+      <NavLink to="/" className="logo">
+        <span className="brand-badge">TF</span>
+        <span className="brand-wordmark">TechFest <small>Portal</small></span>
+      </NavLink>
 
       <ul className="nav-links">
         <li>
-          <Link to="/">Home</Link>
+          <NavLink
+            to="/"
+            end
+            className={({ isActive }) =>
+              isActive ? "nav-link active" : "nav-link"
+            }
+          >
+            Home
+          </NavLink>
         </li>
         <li>
-          <Link to="/events">Events</Link>
+          <NavLink
+            to="/events"
+            className={({ isActive }) =>
+              isActive ? "nav-link active" : "nav-link"
+            }
+          >
+            Browse Events
+          </NavLink>
         </li>
         <li>
-          <Link to="/register">Register</Link>
-        </li>
-        <li>
-          <Link to="/login">Login</Link>
-        </li>
-        <li>
-          <Link to="/Contact">Contact</Link>
+          <NavLink
+            to="/contact"
+            className={({ isActive }) =>
+              isActive ? "nav-link active" : "nav-link"
+            }
+          >
+            Contact
+          </NavLink>
         </li>
       </ul>
     </nav>

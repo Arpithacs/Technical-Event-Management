@@ -1,8 +1,12 @@
 import React, { useState } from "react";
+import { useAuth } from "../context/AuthContext.jsx";
 import Navbar from "../components/Navbar";
+import ParticipantNavbar from "../components/ParticipantNavbar";
+import OrganizerNavbar from "../components/OrganizerNavbar";
 import "./Contact.css";
 
 const Contact = () => {
+  const { role, loading: authLoading } = useAuth();
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -19,7 +23,7 @@ const Contact = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    alert("Message sent successfully! ✅");
+    alert("Message sent successfully!");
     setFormData({
       name: "",
       email: "",
@@ -28,9 +32,16 @@ const Contact = () => {
     });
   };
 
+  const renderNavbar = () => {
+    if (authLoading) return <Navbar />;
+    if (role === "participant") return <ParticipantNavbar />;
+    if (role === "organizer") return <OrganizerNavbar selected="" setSelected={() => {}} />;
+    return <Navbar />;
+  };
+
   return (
     <>
-      <Navbar />
+      {renderNavbar()}
 
       <div className="contact-container">
         <div className="contact-card">

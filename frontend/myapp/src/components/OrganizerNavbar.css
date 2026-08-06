@@ -1,71 +1,222 @@
-/* ===========================
-   MAIN NAVBAR CONTAINER
-=========================== */
+/* ==============================
+   ORGANIZER NAVBAR
+============================== */
 .org-nav {
   position: fixed;
   top: 0;
   left: 0;
-
   width: 100%;
-  height: 70px;
+  height: 68px;
+  background: var(--nav-bg);
+  z-index: 1000;
+  box-sizing: border-box;
+  padding: 0 2rem;
+  box-shadow: 0 4px 22px rgba(0, 0, 0, 0.16);
+}
 
-  background: linear-gradient(90deg, #6a11cb, #ff66c8);
-
+.org-nav-inner {
   display: flex;
   align-items: center;
   justify-content: space-between;
-
-  padding: 0 40px;
-  color: white;
-  z-index: 1000;
-
-  box-shadow: 0 3px 15px rgba(0, 0, 0, 0.12);
+  height: 100%;
 }
 
-/* ===========================
-   LEFT SIDE — LOGO + BUTTONS
-=========================== */
-.nav-left {
+/* ---- LEFT: LOGO + TABS ---- */
+.org-nav-left {
   display: flex;
   align-items: center;
-  gap: 18px; /* Adds space between all items */
+  gap: 6px;
 }
 
-.logo-icon {
-  font-size: 28px;
+.org-logo-icon {
+  font-size: 24px;
   font-weight: bold;
+  color: #fff;
+  margin-right: 4px;
+  text-shadow: 0 0 8px rgba(255, 255, 255, 0.25);
 }
-
-.logo-text {
-  font-size: 22px;
+.org-nav-left > .brand-badge { margin-right: 4px; }
+.org-nav-left > .brand-wordmark { margin-right: 20px; }
+.org-logo-text {
+  font-size: 1.25rem;
   font-weight: 700;
+  color: #fff;
+  margin-right: 20px;
 }
 
-/* ===========================
-   BUTTONS (Moved from right)
-=========================== */
-.nav-left button {
-  background: white;
+.org-nav-tabs {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+/* ---- TAB BUTTONS ---- */
+.org-nav-tab {
+  background: rgba(255, 255, 255, 0.12);
   border: none;
   padding: 8px 18px;
-  font-size: 15px;
-  border-radius: 25px;
+  font-size: 14px;
+  border-radius: 20px;
   cursor: pointer;
-  color: #6a11cb;
+  color: rgba(255, 255, 255, 0.85);
+  font-weight: 500;
+  transition: background 0.25s, color 0.25s, transform 0.15s;
+  position: relative;
+}
+
+.org-nav-tab:hover {
+  background: rgba(255, 255, 255, 0.22);
+  color: #fff;
+  transform: translateY(-1px);
+}
+
+/* Active tab — white pill */
+.org-nav-tab.active {
+  background: #fff;
+  color: var(--color-accent);
   font-weight: 600;
-  transition: 0.25s;
+  box-shadow: 0 0 12px rgba(255, 255, 255, 0.35);
 }
 
-.nav-left button:hover {
-  background: #ffe0f7;
-  transform: scale(1.05);
+/* ---- PROFILE ---- */
+.org-profile {
+  position: relative;
+  flex-shrink: 0;
 }
 
-/* Active button (optional) */
-.nav-left .active {
-  background: #ffd6f6 !important;
-  color: #6a11cb;
-  box-shadow: 0 0 12px rgba(255, 255, 255, 0.5);
+.org-avatar-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 24px;
+  padding: 5px 14px 5px 5px;
+  cursor: pointer;
+  transition: background 0.25s, border-color 0.25s;
+  color: #fff;
+}
+.org-avatar-btn:hover {
+  background: rgba(255, 255, 255, 0.22);
+  border-color: rgba(255, 255, 255, 0.35);
 }
 
+.org-avatar-circle {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: 0.5px;
+  border: 2px solid rgba(255, 255, 255, 0.4);
+}
+.org-avatar-circle.small {
+  width: 36px;
+  height: 36px;
+  font-size: 14px;
+}
 
+.org-profile-name {
+  font-size: 14px;
+  font-weight: 500;
+  max-width: 100px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.org-caret {
+  font-size: 9px;
+  opacity: 0.6;
+  margin-left: -2px;
+}
+
+/* ---- DROPDOWN ---- */
+.org-dropdown {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  width: 260px;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.18);
+  padding: 14px 0;
+  z-index: 200;
+  animation: org-fadeIn 0.18s ease;
+}
+
+@keyframes org-fadeIn {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.org-dropdown-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 4px 16px 14px;
+}
+.org-dropdown-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1a1a2e;
+}
+.org-dropdown-email {
+  font-size: 12px;
+  color: #888;
+  margin-top: 2px;
+}
+
+.org-dropdown-divider {
+  height: 1px;
+  background: #eee;
+  margin: 6px 0;
+}
+
+.org-dropdown-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 16px;
+  background: none;
+  border: none;
+  color: #444;
+  font-size: 14px;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.2s, color 0.2s;
+}
+.org-dropdown-item:hover {
+  background: #EFF6FF;
+  color: var(--color-accent);
+}
+.org-dropdown-item.logout {
+  color: #e74c3c;
+}
+.org-dropdown-item.logout:hover {
+  background: #fff0ef;
+  color: #c0392b;
+}
+
+/* ---- RESPONSIVE ---- */
+@media (max-width: 768px) {
+  .org-nav {
+    padding: 0 1rem;
+  }
+  .org-nav-tabs {
+    gap: 4px;
+  }
+  .org-nav-tab {
+    padding: 6px 12px;
+    font-size: 12px;
+  }
+  .org-profile-name {
+    display: none;
+  }
+}
