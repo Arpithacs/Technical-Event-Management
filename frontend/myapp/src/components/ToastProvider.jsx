@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState } from "react";
 import "./shared.css";
+import { notifyError, notifyInfo, notifySuccess } from "../utils/toast.js";
 
 const ToastContext = createContext(null);
 export const ToastProvider = ({ children }) => {
@@ -13,4 +14,10 @@ export const ToastProvider = ({ children }) => {
     {children}<div className="toast-stack">{toasts.map((toast) => <div key={toast.id} className={`toast ${toast.type}`}>{toast.message}</div>)}</div>
   </ToastContext.Provider>;
 };
-export const useToast = () => useContext(ToastContext);
+export const useToast = () => ({
+  showToast: (message, type = "success") => {
+    if (type === "error") return notifyError(message);
+    if (type === "info") return notifyInfo(message);
+    return notifySuccess(message);
+  },
+});

@@ -1,13 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "../context/AuthContext.jsx";
-import { useToast } from "../components/ToastProvider.jsx";
+import { notifyError, notifySuccess } from "../utils/toast.js";
 import ParticipantNavbar from "../components/ParticipantNavbar";
 import "./pregister.css";
 
 const Pregister = () => {
   const { user } = useAuth();
-  const { showToast } = useToast();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
@@ -76,10 +75,10 @@ const Pregister = () => {
       const data = await res.json();
 
       if (res.ok) {
-        showToast(data.message || "Registration successful!");
+        notifySuccess(data.message || "Registration successful!");
         navigate("/participant/dashboard", { replace: true });
       } else {
-        showToast(data.message || "Registration failed. Please try again.", "error");
+        notifyError(data.message || "Registration failed. Please try again.");
         setSubmitMsg(data.message || "Registration failed. Please try again.");
         setMsgType("error");
       }

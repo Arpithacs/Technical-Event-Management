@@ -2,13 +2,12 @@ import React, { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import { useAuth } from "../context/AuthContext.jsx";
-import { useToast } from "../components/ToastProvider.jsx";
+import { notifyError, notifySuccess } from "../utils/toast.js";
 import "./ParticipantAuth.css"; // reuse same styles
 
 const OrganizerAuth = () => {
   const navigate = useNavigate();
   const { login, role, loading } = useAuth();
-  const { showToast } = useToast();
 
   // Redirect if already logged in
   useEffect(() => {
@@ -31,11 +30,11 @@ const OrganizerAuth = () => {
       });
       const data = await res.json();
       if (data.success) {
-        showToast("Organizer login successful");
+        notifySuccess("Organizer login successful");
         login(data.organizer, "organizer");
         navigate("/organizer/dashboard");
       } else {
-        showToast(data.message || "Invalid credentials", "error");
+        notifyError(data.message || "Invalid credentials");
         setLoginError(data.message || "Invalid credentials");
       }
     } catch (err) {

@@ -2,14 +2,13 @@ import React, { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import { useAuth } from "../context/AuthContext.jsx";
-import { useToast } from "../components/ToastProvider.jsx";
+import { notifyError, notifySuccess } from "../utils/toast.js";
 import "./ParticipantAuth.css";
 
 const ParticipantAuth = () => {
   const [activeTab, setActiveTab] = useState("login");
   const navigate = useNavigate();
   const { login, role, loading } = useAuth();
-  const { showToast } = useToast();
 
   // Redirect if already logged in
   useEffect(() => {
@@ -45,11 +44,11 @@ const ParticipantAuth = () => {
       });
       const data = await res.json();
       if (data.success) {
-        showToast("Login successful");
+        notifySuccess("Login successful");
         login(data.user, "participant");
         navigate("/participant/dashboard");
       } else {
-        showToast(data.message || "Login failed", "error");
+        notifyError(data.message || "Login failed");
         setLoginError(data.message || "Login failed");
       }
     } catch (err) {
@@ -69,12 +68,12 @@ const ParticipantAuth = () => {
       });
       const data = await res.json();
       if (res.ok) {
-        showToast("Account created. You can now log in.");
+        notifySuccess("Account created. You can now log in.");
         setSignupSuccess("Account created! You can now log in.");
         setSignupData({ fullname: "", email: "", password: "", phone: "", college_name: "" });
         setTimeout(() => setActiveTab("login"), 1500);
       } else {
-        showToast(data.message || "Signup failed", "error");
+        notifyError(data.message || "Signup failed");
         setSignupError(data.message || "Signup failed");
       }
     } catch (err) {
