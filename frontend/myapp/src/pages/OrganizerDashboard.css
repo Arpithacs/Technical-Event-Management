@@ -377,6 +377,13 @@
   border-color: #6a11cb;
 }
 
+.inline-error {
+  margin: -4px 0 0;
+  color: #b42318;
+  font-size: 13px;
+  font-weight: 600;
+}
+
 /* Select in popup */
 .popup-box select {
   width: 100%;

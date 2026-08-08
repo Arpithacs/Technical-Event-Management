@@ -108,7 +108,7 @@ const Events = () => {
                       {event.location && <div>📍 {event.location}</div>}
                       {event.capacity && (
                         <div className={isFull ? "seats-full" : ""}>
-                          👥 {event.seats_left ?? event.capacity} / {event.capacity} seats
+                          👥 {Math.min(Number(event.registered_count ?? (event.capacity - (event.seats_left || 0))), Number(event.capacity))} / {event.capacity} seats
                           {isFull && " — Full"}
                         </div>
                       )}

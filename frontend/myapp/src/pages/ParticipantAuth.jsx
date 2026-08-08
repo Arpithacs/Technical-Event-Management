@@ -34,6 +34,7 @@ const ParticipantAuth = () => {
   });
   const [signupError, setSignupError] = useState("");
   const [signupSuccess, setSignupSuccess] = useState("");
+  const [phoneError, setPhoneError] = useState("");
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -64,6 +65,11 @@ const ParticipantAuth = () => {
     e.preventDefault();
     setSignupError("");
     setSignupSuccess("");
+    if (!/^\d{10}$/.test(signupData.phone)) {
+      setPhoneError("Phone number must contain exactly 10 digits.");
+      return;
+    }
+    setPhoneError("");
     try {
       const res = await fetch(`${API_URL}/api/signup`, {
         method: "POST",
@@ -178,10 +184,11 @@ const ParticipantAuth = () => {
                 placeholder="Phone Number"
                 value={signupData.phone}
                 onChange={(e) =>
-                  setSignupData({ ...signupData, phone: e.target.value })
+                  setSignupData({ ...signupData, phone: e.target.value.replace(/\D/g, "").slice(0, 10) })
                 }
                 required
               />
+              {phoneError && <p className="error-msg">{phoneError}</p>}
               <input
                 type="text"
                 placeholder="College / University Name"

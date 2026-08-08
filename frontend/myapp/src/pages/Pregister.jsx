@@ -25,6 +25,7 @@ const Pregister = () => {
   const [loading, setLoading] = useState(true);
   const [submitMsg, setSubmitMsg] = useState("");
   const [msgType, setMsgType] = useState(""); // "success" | "error"
+  const [phoneError, setPhoneError] = useState("");
 
   useEffect(() => {
     // Pre-fill from auth context if available
@@ -63,6 +64,11 @@ const Pregister = () => {
     e.preventDefault();
     setSubmitMsg("");
     setMsgType("");
+    if (!/^\d{10}$/.test(formData.phone)) {
+      setPhoneError("Phone number must contain exactly 10 digits.");
+      return;
+    }
+    setPhoneError("");
 
     try {
       const res = await fetch(`${API_URL}/api/register`, {
@@ -110,9 +116,10 @@ const Pregister = () => {
             type="text"
             name="fullname"
             value={formData.fullname}
-            onChange={handleChange}
+            onChange={(e) => setFormData((prev) => ({ ...prev, phone: e.target.value.replace(/\D/g, "").slice(0, 10) }))}
             required
           />
+          {phoneError && <div className="register-msg error">{phoneError}</div>}
 
           <label>Email Address *</label>
           <input
@@ -158,7 +165,7 @@ const Pregister = () => {
                 {ev.date ? ` — ${new Date(ev.date).toLocaleDateString()}` : ""}
                 {ev.event_scope ? ` (${ev.event_scope})` : ""}
                 {ev.seats_left != null && ev.capacity
-                  ? ` [${ev.seats_left}/${ev.capacity} seats]`
+                  ? ` [${Math.min(Number(ev.registered_count ?? (ev.capacity - (ev.seats_left || 0))), Number(ev.capacity))}/${ev.capacity} seats]`
                   : ""}
               </option>
             ))}

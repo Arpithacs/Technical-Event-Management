@@ -5,6 +5,11 @@ import ConfirmModal from "../components/ConfirmModal.jsx";
 import "./OrganizerDashboard.css";
 import { API_URL } from "../utils/api.js";
 import PageLayout from "../components/PageLayout.jsx";
+import ThemedDatePicker from "../components/ThemedDatePicker.jsx";
+
+const toDateValue = (value) => (value ? new Date(`${value}T00:00:00`) : null);
+const formatDateValue = (value) => value.toISOString().slice(0, 10);
+const formatTimeValue = (value) => value.toTimeString().slice(0, 5);
 
 export default function OrganizerDashboard() {
   const { showToast } = useToast();
@@ -55,6 +60,9 @@ export default function OrganizerDashboard() {
   // EDIT POPUP
   const [editPopup, setEditPopup] = useState(false);
   const [editEvent, setEditEvent] = useState({});
+  const [eventFormError, setEventFormError] = useState("");
+  const [editEventError, setEditEventError] = useState("");
+  const [judgeFormError, setJudgeFormError] = useState("");
 
   /* -------------------- Fetch Summary ------------------ */
   useEffect(() => {
@@ -119,8 +127,15 @@ export default function OrganizerDashboard() {
   /* -------------------- Add Event ------------------ */
   const handleAddEvent = (e) => {
     e.preventDefault();
-    if (Number(eventForm.capacity) <= 0) return showToast("Capacity must be greater than 0", "error");
-    if (eventForm.registration_deadline && eventForm.registration_deadline >= eventForm.date) return showToast("Registration deadline must be before the event date", "error");
+    setEventFormError("");
+    if (!Number.isFinite(Number(eventForm.capacity)) || Number(eventForm.capacity) <= 0) {
+      setEventFormError("Capacity must be a number greater than 0.");
+      return;
+    }
+    if (eventForm.registration_deadline && `${eventForm.registration_deadline}T00:00` >= `${eventForm.date}T${eventForm.time}`) {
+      setEventFormError("Registration deadline must be before the event date and time.");
+      return;
+    }
 
     fetch(`${API_URL}/api/organizer/add-event`, {
       method: "POST",
@@ -188,7 +203,15 @@ export default function OrganizerDashboard() {
 
   const handleAddJudge = (e) => {
     e.preventDefault();
-    if (!/^\d{10}$/.test(judgeForm.contact_no)) return showToast("Contact number must be exactly 10 digits", "error");
+    setJudgeFormError("");
+    if (!judgeForm.name.trim() || !judgeForm.contact_no.trim() || !judgeForm.expertise_area.trim()) {
+      setJudgeFormError("Name, contact number, and expertise area are required.");
+      return;
+    }
+    if (!/^\d{10}$/.test(judgeForm.contact_no)) {
+      setJudgeFormError("Contact number must contain exactly 10 digits.");
+      return;
+    }
     fetch(`${API_URL}/api/organizer/judges${editingJudgeId ? `/${editingJudgeId}` : ""}`, {
       method: editingJudgeId ? "PUT" : "POST",
       credentials: "include",
@@ -266,6 +289,15 @@ export default function OrganizerDashboard() {
 
   /* -------------------- UPDATE EVENT ------------------ */
   const updateEvent = () => {
+    setEditEventError("");
+    if (!Number.isFinite(Number(editEvent.capacity)) || Number(editEvent.capacity) <= 0) {
+      setEditEventError("Capacity must be a number greater than 0.");
+      return;
+    }
+    if (editEvent.registration_deadline && `${editEvent.registration_deadline}T00:00` >= `${editEvent.date}T${editEvent.time}`) {
+      setEditEventError("Registration deadline must be before the event date and time.");
+      return;
+    }
     let cleanDate = editEvent.date;
     if (cleanDate && cleanDate.includes("T")) {
       cleanDate = cleanDate.split("T")[0];
@@ -376,7 +408,7 @@ export default function OrganizerDashboard() {
                       <td>{ev.location}</td>
                       <td>
                         {ev.capacity
-                          ? `${ev.seats_left ?? ev.capacity}/${ev.capacity}`
+                          ? `${Math.min(Number(ev.registered_count ?? (ev.capacity - (ev.seats_left || 0))), Number(ev.capacity))}/${ev.capacity}`
                           : "—"}
                       </td>
                       <td>
@@ -514,24 +546,10 @@ export default function OrganizerDashboard() {
                 />
 
                 <label>Event Date</label>
-                <input
-                  type="date"
-                  value={eventForm.date}
-                  onChange={(e) =>
-                    setEventForm({ ...eventForm, date: e.target.value })
-                  }
-                  required
-                />
+                <ThemedDatePicker selected={toDateValue(eventForm.date)} value={eventForm.date} onChange={(value) => setEventForm({ ...eventForm, date: value ? formatDateValue(value) : "" })} placeholderText="Select event date" required />
 
                 <label>Event Start Time</label>
-                <input
-                  type="time"
-                  value={eventForm.time}
-                  onChange={(e) =>
-                    setEventForm({ ...eventForm, time: e.target.value })
-                  }
-                  required
-                />
+                <ThemedDatePicker value={eventForm.time ? `1970-01-01T${eventForm.time}` : ""} onChange={(value) => setEventForm({ ...eventForm, time: value ? formatTimeValue(value) : "" })} showTimeSelect showTimeSelectOnly placeholderText="Select start time" required />
 
                 <label>Venue / Location</label>
                 <input
@@ -545,13 +563,8 @@ export default function OrganizerDashboard() {
                 />
 
                 <label className="form-label-small">Registration Deadline</label>
-                <input
-                  type="date"
-                  value={eventForm.registration_deadline}
-                  onChange={(e) =>
-                    setEventForm({ ...eventForm, registration_deadline: e.target.value })
-                  }
-                />
+                <ThemedDatePicker value={eventForm.registration_deadline} onChange={(value) => setEventForm({ ...eventForm, registration_deadline: value ? formatDateValue(value) : "" })} placeholderText="Select registration deadline" />
+                {eventFormError && <p className="inline-error">{eventFormError}</p>}
 
                 <button type="submit" className="add-btn">
                   Add Event
@@ -597,7 +610,7 @@ export default function OrganizerDashboard() {
                         <td>{ev.location}</td>
                         <td>
                           {ev.capacity
-                            ? `${ev.seats_left ?? ev.capacity}/${ev.capacity}`
+                            ? `${Math.min(Number(ev.registered_count ?? (ev.capacity - (ev.seats_left || 0))), Number(ev.capacity))}/${ev.capacity}`
                             : "—"}
                         </td>
                       </tr>
@@ -626,17 +639,18 @@ export default function OrganizerDashboard() {
               <h2>{editingJudgeId ? "Edit Judge Assignment" : "Assign a Judge"}</h2>
               <form className="event-form" onSubmit={handleAddJudge}>
                 <label>Judge Name</label>
-                <input required value={judgeForm.name} onChange={(e) => setJudgeForm({ ...judgeForm, name: e.target.value })} placeholder="Full name" />
+                <input value={judgeForm.name} onChange={(e) => setJudgeForm({ ...judgeForm, name: e.target.value })} placeholder="Full name" />
                 <label>Contact Number</label>
-                <input required type="tel" value={judgeForm.contact_no} onChange={(e) => setJudgeForm({ ...judgeForm, contact_no: e.target.value })} placeholder="Contact number" />
+                <input type="tel" inputMode="numeric" value={judgeForm.contact_no} onChange={(e) => setJudgeForm({ ...judgeForm, contact_no: e.target.value.replace(/\D/g, "").slice(0, 10) })} placeholder="Contact number" />
                 <label>Expertise Area</label>
-                <input required value={judgeForm.expertise_area} onChange={(e) => setJudgeForm({ ...judgeForm, expertise_area: e.target.value })} placeholder="e.g. Artificial Intelligence" />
+                <input value={judgeForm.expertise_area} onChange={(e) => setJudgeForm({ ...judgeForm, expertise_area: e.target.value })} placeholder="e.g. Artificial Intelligence" />
                 <label>Assigned Event</label>
                 <select required value={judgeForm.event_id} onChange={(e) => setJudgeForm({ ...judgeForm, event_id: e.target.value })}>
                   <option value="">Select an event</option>
                   {events.map((event) => <option key={event.event_id} value={event.event_id}>{event.event_name}</option>)}
                 </select>
                 <button type="submit" className="add-btn">{editingJudgeId ? "Save Judge" : "Assign Judge"}</button>
+                {judgeFormError && <p className="inline-error">{judgeFormError}</p>}
                 {editingJudgeId && <button type="button" className="secondary-btn" onClick={() => { setEditingJudgeId(null); setJudgeForm({ name: "", contact_no: "", expertise_area: "", event_id: "" }); }}>Cancel</button>}
               </form>
             </section>
@@ -700,21 +714,9 @@ export default function OrganizerDashboard() {
                 min="1"
               />
 
-              <input
-                type="date"
-                value={editEvent.date ? editEvent.date.split("T")[0] : ""}
-                onChange={(e) =>
-                  setEditEvent({ ...editEvent, date: e.target.value })
-                }
-              />
+              <ThemedDatePicker value={editEvent.date} onChange={(value) => setEditEvent({ ...editEvent, date: value ? formatDateValue(value) : "" })} placeholderText="Select event date" />
 
-              <input
-                type="time"
-                value={editEvent.time || ""}
-                onChange={(e) =>
-                  setEditEvent({ ...editEvent, time: e.target.value })
-                }
-              />
+              <ThemedDatePicker value={editEvent.time ? `1970-01-01T${editEvent.time}` : ""} onChange={(value) => setEditEvent({ ...editEvent, time: value ? formatTimeValue(value) : "" })} showTimeSelect showTimeSelectOnly placeholderText="Select start time" />
 
               <input
                 type="text"
@@ -725,13 +727,8 @@ export default function OrganizerDashboard() {
               />
 
               <label className="form-label-small">Registration Deadline</label>
-              <input
-                type="date"
-                value={editEvent.registration_deadline ? editEvent.registration_deadline.split("T")[0] : ""}
-                onChange={(e) =>
-                  setEditEvent({ ...editEvent, registration_deadline: e.target.value })
-                }
-              />
+              <ThemedDatePicker value={editEvent.registration_deadline} onChange={(value) => setEditEvent({ ...editEvent, registration_deadline: value ? formatDateValue(value) : "" })} placeholderText="Select registration deadline" />
+              {editEventError && <p className="inline-error">{editEventError}</p>}
 
               <div style={{ display: "flex", gap: "10px", marginTop: "12px" }}>
                 <button className="save-btn" onClick={updateEvent}>

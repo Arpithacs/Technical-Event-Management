@@ -21,6 +21,7 @@ ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
     <BrowserRouter>
       <ToastProvider><AuthProvider>
+        <div className="app-shell">
         <Routes>
           {/* Public */}
           <Route path="/" element={<App />} />
@@ -42,6 +43,7 @@ ReactDOM.createRoot(document.getElementById("root")).render(
           <Route path="/organizer/dashboard" element={<OrganizerDashboard />} />
         </Routes>
         <Footer />
+        </div>
       </AuthProvider></ToastProvider>
     </BrowserRouter>
   </React.StrictMode>

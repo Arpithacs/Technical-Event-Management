@@ -6,6 +6,7 @@ import { API_URL } from "../utils/api.js";
 
 const Register = () => {
   const { showToast } = useToast();
+  const [phoneError, setPhoneError] = useState("");
   const [formData, setFormData] = useState({
     fullname: "",
     email: "",
@@ -29,6 +30,11 @@ const Register = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!/^\d{10}$/.test(formData.phone)) {
+      setPhoneError("Phone number must contain exactly 10 digits.");
+      return;
+    }
+    setPhoneError("");
 
     try {
       const res = await fetch(`${API_URL}/api/register`, {
@@ -91,10 +97,11 @@ const Register = () => {
             type="tel"
             name="phone"
             value={formData.phone}
-            onChange={handleChange}
+            onChange={(e) => setFormData((prev) => ({ ...prev, phone: e.target.value.replace(/\D/g, "").slice(0, 10) }))}
             placeholder="Enter your phone number"
             required
           />
+          {phoneError && <p className="error-msg">{phoneError}</p>}
 
           <label>
             Select Event <span>*</span>

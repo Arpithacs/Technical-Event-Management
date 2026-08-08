@@ -180,7 +180,9 @@ router.get("/events", async (req, res) => {
         e.event_id, e.event_name, e.description,
         e.date, e.time, e.location,
         e.event_scope, e.capacity, e.registration_deadline,
-        e.capacity - ISNULL(rc.reg_count, 0) AS seats_left,
+        ISNULL(rc.reg_count, 0) AS registered_count,
+        CASE WHEN e.capacity - ISNULL(rc.reg_count, 0) < 0 THEN 0
+             ELSE e.capacity - ISNULL(rc.reg_count, 0) END AS seats_left,
         STRING_AGG(o.name, ', ') AS organizers
       FROM events e
       LEFT JOIN event_organizer eo ON e.event_id = eo.event_id
@@ -218,7 +220,9 @@ router.get("/my-events", isOrganizer, async (req, res) => {
         SELECT e.event_id, e.event_name, e.description,
                e.date, e.time, e.location,
                e.event_scope, e.capacity, e.registration_deadline,
-               e.capacity - ISNULL(rc.reg_count, 0) AS seats_left,
+               ISNULL(rc.reg_count, 0) AS registered_count,
+               CASE WHEN e.capacity - ISNULL(rc.reg_count, 0) < 0 THEN 0
+                    ELSE e.capacity - ISNULL(rc.reg_count, 0) END AS seats_left,
                eo.role
         FROM events e
         JOIN event_organizer eo ON e.event_id = eo.event_id

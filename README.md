@@ -80,7 +80,7 @@ Before running the project, ensure the following software is installed on your s
 ### Step 1: Clone the Repository
 
 ```bash
-git clone https://github.com/asleshb/Technical-Event-Management.git
+git clone https://github.com/Arpithacs/Technical-Event-Management.git
 cd Technical-Event-Management
 ```
 
@@ -192,6 +192,8 @@ const db = mysql.createConnection({
 
 ### Step 4: Install and Run the Backend Server
 
+Run these commands from the `Technical-Event-Management` project root (the same checkout that contains both `backend` and `frontend`).
+
 Navigate to the backend directory.
 
 ```bash
@@ -223,6 +225,10 @@ The backend server will start at:
 ```text
 http://localhost:5000
 ```
+
+Keep this terminal running while using the frontend. If the backend source changes while
+the server is running with `npm start`, stop it with `Ctrl+C` and start it again; plain
+Node does not hot-reload backend files.
 
 ---
 
@@ -257,6 +263,24 @@ The frontend application will be available at:
 ```text
 http://localhost:5173
 ```
+
+When working with multiple checkouts, start Vite from the `frontend/myapp` directory
+inside the same `Technical-Event-Management` checkout as the backend. Otherwise, port
+5173 may serve an older copy of the application. Vite hot-reloads source changes, but
+use a hard refresh (`Ctrl+Shift+R`) if the browser shows stale content.
+
+### Seat Count Convention
+
+Event APIs return both seat values:
+
+- `registered_count`: the number of registrations, shown to users as
+  `registered_count / capacity` (for example, `5 / 20 seats`).
+- `seats_left`: remaining capacity, used internally to determine when an event is full
+  and registration must be disabled.
+
+The participant Browse Events page loads events from
+`GET /api/organizer/events`. After a successful registration, `registered_count`
+increases by one and `seats_left` decreases by one.
 
 ---
 
