@@ -1,464 +1,277 @@
-# Technical Event Management System
+# Technical Event Management
 
-## Project Overview
+Technical Event Management is a college tech-fest portal for participants and organizers. Participants can discover and register for intra-college, inter-college, and zonal events. Organizers can manage events, registrations, judges, and event information.
 
-The Technical Event Management System is a full-stack web application developed to simplify the organization and management of technical events such as Hackathons, Coding Competitions, AI/ML Challenges, Robotics Competitions, UI/UX Contests, and Gaming Events. The system provides separate interfaces for Participants and Organizers, enabling efficient event management, registration, and tracking.
+## Tech stack
 
-The application follows a decoupled architecture with a React frontend, Node.js and Express.js backend, and a MySQL relational database. It offers secure authentication, role-based access control, event management, and participant registration through an intuitive and responsive user interface.
+- Frontend: React 19, Vite, React Router, Axios
+- Backend: Node.js, Express 5, `express-session`, CORS, `body-parser`
+- Database: Microsoft SQL Server, accessed with `mssql`
+- Authentication: bcrypt password hashing and server-side sessions
+- UI and feedback: `react-hot-toast`, themed `react-datepicker`, `lucide-react`
+- Tickets: `qrcode.react`
+- Frontend tooling: ESLint, Tailwind CSS, PostCSS, Autoprefixer
 
----
+The application does not use MySQL or `mysql2`.
 
-## Key Features
+## Prerequisites
 
-### Participant Features
+- Node.js and npm. Node.js 20 LTS or newer is recommended.
+- SQL Server Express or another SQL Server installation
+- SQL Server Management Studio (SSMS)
+- SQL Server mixed-mode authentication enabled, because the application uses SQL Server username/password authentication by default
 
-- Secure user registration and login with session-based authentication.
-- Browse technical events categorized into Development, Coding, AI & Machine Learning, Robotics, UI/UX, and Gaming.
-- Register for technical events through a simple registration process.
-- Personalized dashboard to view registered events, registration details, registration ID, and registration history.
-- Automatic association of registered users with selected events using session management.
+## Database setup
 
-### Organizer Features
+1. Install SQL Server and SSMS.
+2. In SQL Server Management Studio, open the server properties, choose **Security**, select **SQL Server and Windows Authentication mode**, save, and restart the SQL Server service.
+3. Create the database:
 
-- Secure organizer login with role-based access.
-- Interactive dashboard displaying event analytics and registration statistics.
-- Complete Event Management (CRUD) including creating, viewing, updating, and deleting technical events.
-- View event statistics such as Total Events, Total Participants, Upcoming Events, and Completed Events.
-- Monitor participant registrations with complete participant information including name, email, contact number, and registered event.
+   ```sql
+   CREATE DATABASE EventManagement;
+   GO
+   ```
 
-### System Features
+4. Create a SQL login and database user. Replace the password with a strong local secret:
 
-- Full-stack architecture using React, Node.js, Express.js, and MySQL.
-- Role-based authentication and authorization using Express Session and secure HTTP cookies.
-- RESTful API communication between frontend and backend.
-- Responsive and modular user interface for improved user experience.
-- Organized dashboard layouts for Participants and Organizers.
-- MySQL relational database for efficient storage and management of users, organizers, events, and registrations.
-- Modular project structure for easy maintenance and scalability.
+   ```sql
+   USE master;
+   GO
+   CREATE LOGIN appuser WITH PASSWORD = 'replace-with-a-strong-password';
+   GO
+   USE EventManagement;
+   GO
+   CREATE USER appuser FOR LOGIN appuser;
+   ALTER ROLE db_owner ADD MEMBER appuser;
+   GO
+   ```
 
-## Technology Stack
+5. From SSMS, open and execute [`backend/schema.sql`](backend/schema.sql) while connected to `EventManagement`. The script is the current master schema and recreates the tables in dependency order.
 
-### Frontend (Client-Side)
+The current schema includes:
 
-- **Library:** React 19
-- **Build Tool:** Vite 7
-- **Routing:** React Router DOM v7
-- **Styling:** HTML5, CSS3, Tailwind CSS v4
-- **Icons:** Lucide React
-- **HTTP Client:** Axios and Fetch API
+- `users` for participants
+- `organizer`
+- `events` with `event_scope`, `capacity`, and `registration_deadline`
+- `sponsor`
+- `judge`
+- `event_organizer` many-to-many junction table
+- `event_sponsor` many-to-many junction table
+- `registrations` with `college_name`, foreign keys to users/events, and `UNIQUE (user_id, event_id)` to prevent duplicate registrations
+- `results`
 
-### Backend (Server-Side)
+`event_scope` accepts `intra-college`, `inter-college`, or `zonal`. Event registration counts are derived from `registrations`; they are not stored as a mutable counter.
 
-- **Runtime Environment:** Node.js
-- **Framework:** Express.js v5
-- **Session Management:** Express Session
-- **Cross-Origin Resource Sharing:** CORS Middleware
-- **Architecture:** RESTful APIs
+## Environment configuration
 
-### Database
+### Backend
 
-- **Database Management System:** MySQL
-- **Database Driver:** mysql2
-- **Database Name:** `myprojectdb`
+Create `Technical-Event-Management/.env` at the project root, next to `backend/` and `frontend/`, using [`backend/.env.example`](backend/.env.example):
 
----
-
-## Installation and Setup
-
-### Prerequisites
-
-Before running the project, ensure the following software is installed on your system:
-
-- Node.js
-- npm
-- MySQL Server
-- MySQL Workbench (Recommended)
-- Git
-
----
-
-### Step 1: Clone the Repository
-
-```bash
-git clone https://github.com/Arpithacs/Technical-Event-Management.git
-cd Technical-Event-Management
+```env
+DB_SERVER=localhost
+DB_INSTANCE=SQLEXPRESS
+DB_DATABASE=EventManagement
+DB_USER=appuser
+DB_PASSWORD=replace-with-a-secure-password
+DB_TRUSTED=false
+DB_PORT=1433
+SESSION_SECRET=replace-with-a-long-random-secret
 ```
 
----
+`backend/db.js` resolves this project-root `.env`. Do not commit the real `.env`; it contains credentials and the session secret.
 
-### Step 2: Database Setup
+### Frontend
 
-Start the MySQL Server and create the project database.
-
-```sql
-CREATE DATABASE myprojectdb;
-USE myprojectdb;
-```
-
-Create the required database tables.
-
-#### Users Table
-
-```sql
-CREATE TABLE users (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    fullname VARCHAR(255) NOT NULL,
-    email VARCHAR(255) NOT NULL UNIQUE,
-    password VARCHAR(255) NOT NULL,
-    phone VARCHAR(20) NOT NULL
-);
-```
-
-#### Organizer Table
-
-```sql
-CREATE TABLE organizer (
-    organizer_id INT AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(255) NOT NULL,
-    email VARCHAR(255) NOT NULL UNIQUE,
-    password VARCHAR(255) NOT NULL,
-    department VARCHAR(100) NOT NULL
-);
-```
-
-#### Events Table
-
-```sql
-CREATE TABLE events (
-    event_id INT AUTO_INCREMENT PRIMARY KEY,
-    event_name VARCHAR(255) NOT NULL,
-    description TEXT,
-    date DATE NOT NULL,
-    time TIME NOT NULL,
-    location VARCHAR(255) NOT NULL,
-    organizer_id INT,
-    FOREIGN KEY (organizer_id)
-        REFERENCES organizer(organizer_id)
-        ON DELETE CASCADE
-);
-```
-
-#### Registrations Table
-
-```sql
-CREATE TABLE registrations (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    user_id INT,
-    fullname VARCHAR(255) NOT NULL,
-    email VARCHAR(255) NOT NULL,
-    phone VARCHAR(20) NOT NULL,
-    event_name VARCHAR(255) NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (user_id)
-        REFERENCES users(id)
-        ON DELETE CASCADE
-);
-```
-
-Insert the default organizer account.
-
-```sql
-INSERT INTO organizer (name, email, password, department)
-VALUES (
-    'CSE Admin',
-    'admin@techfest.com',
-    'admin123',
-    'Computer Science'
-);
-```
-
----
-
-### Step 3: Configure the Database Connection
-
-Open the following file:
-
-```text
-backend/db.js
-```
-
-Update the MySQL credentials according to your local database configuration.
-
-```javascript
-const db = mysql.createConnection({
-    host: "127.0.0.1",
-    user: "root",
-    password: "root",
-    database: "myprojectdb",
-});
-```
-
----
-
-### Step 4: Install and Run the Backend Server
-
-Run these commands from the `Technical-Event-Management` project root (the same checkout that contains both `backend` and `frontend`).
-
-Navigate to the backend directory.
-
-```bash
-cd backend
-```
-
-Install the required dependencies.
-
-```bash
-npm install
-```
-
-Create `Technical-Event-Management/.env` at the project root with the database settings and a long random `SESSION_SECRET`. Do not commit this file; use `backend/.env.example` as a template.
-
-Start the Express server.
-
-```bash
-npm start
-```
-
-For development, run:
-
-```bash
-npm run dev
-```
-
-The backend server will start at:
-
-```text
-http://localhost:5000
-```
-
-Keep this terminal running while using the frontend. If the backend source changes while
-the server is running with `npm start`, stop it with `Ctrl+C` and start it again; plain
-Node does not hot-reload backend files.
-
----
-
-### Step 5: Install and Run the Frontend
-
-Open a new terminal and navigate to the frontend directory.
-
-```bash
-cd frontend/myapp
-```
-
-Create `Technical-Event-Management/frontend/myapp/.env` with:
+Create `frontend/myapp/.env`:
 
 ```env
 VITE_API_URL=http://localhost:5000
 ```
 
-Install the required dependencies.
+There is currently no committed frontend `.env.example` file; copy the variable above into the local frontend `.env`. Do not commit the local `.env`.
+
+## Install and run
+
+Run commands from the project root:
 
 ```bash
+cd backend
 npm install
+npm start
 ```
 
-Start the React development server.
+Backend scripts:
+
+- `npm start` runs `node server.js`
+- `npm run dev` also runs `node server.js` (the current development script does not use nodemon)
+- `npm test` is the package placeholder and intentionally exits with an error; no automated backend test suite is currently configured
+
+In a second terminal:
 
 ```bash
+cd frontend/myapp
+npm install
 npm run dev
 ```
 
-The frontend application will be available at:
+Frontend scripts:
 
-```text
-http://localhost:5173
+- `npm run dev` starts Vite
+- `npm run build` creates a production build
+- `npm run preview` previews the production build
+- `npm run lint` runs ESLint
+
+Open <http://localhost:5173>. The backend listens at <http://localhost:5000>.
+
+If backend source changes while `npm start` is running, stop it with `Ctrl+C` and restart it; plain Node does not hot-reload backend files. Vite normally hot-reloads frontend changes. When multiple checkouts exist, start both servers from the same checkout to avoid serving an older frontend copy, and use `Ctrl+Shift+R` if the browser has cached an old bundle.
+
+## Create the first organizer account
+
+Organizer signup is intentionally not self-service. Create the organizer password hash locally, then insert the organizer through SSMS.
+
+From `backend/`, generate a bcrypt hash without placing a plaintext password in the repository:
+
+```bash
+node -e "import bcrypt from 'bcrypt'; const password=process.argv[1]; console.log(await bcrypt.hash(password, 10));" "choose-a-strong-password"
 ```
 
-When working with multiple checkouts, start Vite from the `frontend/myapp` directory
-inside the same `Technical-Event-Management` checkout as the backend. Otherwise, port
-5173 may serve an older copy of the application. Vite hot-reloads source changes, but
-use a hard refresh (`Ctrl+Shift+R`) if the browser shows stale content.
+Copy the generated 60-character hash into an SSMS insert:
 
-### Seat Count Convention
+```sql
+USE EventManagement;
+GO
+INSERT INTO organizer (name, email, password, department)
+VALUES (
+  N'Your Organizer Name',
+  N'you@example.edu',
+  N'PASTE_BCRYPT_HASH_HERE',
+  N'Your Department'
+);
+GO
+```
 
-Event APIs return both seat values:
+Use the email and the original password you chose when signing in through the Organizer Portal. Never store the plaintext password or a real hash in documentation or source control.
 
-- `registered_count`: the number of registrations, shown to users as
-  `registered_count / capacity` (for example, `5 / 20 seats`).
-- `seats_left`: remaining capacity, used internally to determine when an event is full
-  and registration must be disabled.
+## Key features
 
-The participant Browse Events page loads events from
-`GET /api/organizer/events`. After a successful registration, `registered_count`
-increases by one and `seats_left` decreases by one.
+### Participant portal
 
----
+- Role-gated landing page and participant authentication
+- Browse Events search and scope filters for All, Intra-College, Inter-College, and Zonal
+- Registered, Sold Out, and Register button states
+- Registration with duplicate-registration and capacity handling
+- Participant dashboard with registration statistics
+- QR ticket/pass download containing the registration ID
+- Cancel registration with ownership-scoped backend deletion and confirmation modal
+- Empty-state guidance when no registrations exist
 
-## Project Structure
+### Organizer portal
+
+- Organizer authentication and dashboard analytics
+- Event creation, editing, and deletion
+- Event Overview and Events tables
+- Participant search by name, email, college, or event
+- Event search by name or location
+- Ten-row pagination with range labels and Previous/Next controls
+- CSV export of the currently filtered participant rows
+- Judge assignment, editing, and removal
+- Confirmation modals for event deletion and judge removal
+
+### Shared UI
+
+- Toast notifications for action success and failure
+- Shared confirmation modal
+- Shared page layout, page-header band, and footer
+- Themed date/time pickers and inline form validation
+
+Seat counts follow one convention: user-facing displays show `registered_count / capacity`; `seats_left` is retained for full-event detection and disabled registration behavior.
+
+## Project structure
 
 ```text
-DBMS_PROJECT/
+Technical-Event-Management/
+├── .env                         # local, ignored project-root backend environment
+├── README.md
+├── PROJECT_REPORT.md
 ├── backend/
-│   ├── db.js                     # MySQL connection configuration
-│   ├── server.js                 # Express server initialization and API routing
-│   ├── package.json              # Backend dependencies and scripts
-│   ├── package-lock.json         # Dependency lock file
+│   ├── .env.example
+│   ├── db.js
+│   ├── package.json
+│   ├── schema.sql
+│   ├── server.js
+│   ├── seed_organizer.sql
 │   ├── middleware/
-│   │   ├── authMiddleware.js     # Participant authentication middleware
-│   │   └── organizerAuth.js      # Organizer authentication middleware
+│   │   ├── authMiddleware.js
+│   │   └── organizerAuth.js
 │   └── routes/
-│       ├── auth.js               # Participant login APIs
-│       ├── signup.js             # User registration APIs
-│       ├── register.js           # Event registration APIs
-│       ├── organizer.js          # Organizer dashboard, analytics, and event management APIs
-│       └── participant.js        # Participant dashboard and registered events APIs
-│
-├── frontend/
-│   └── myapp/
-│       ├── index.html            # Entry HTML file
-│       ├── vite.config.js        # Vite configuration
-│       ├── package.json          # Frontend dependencies and scripts
-│       ├── package-lock.json     # Dependency lock file
-│       ├── public/
-│       │   └── images/           # Application images and assets
-│       └── src/
-│           ├── main.jsx          # React application entry point
-│           ├── App.jsx           # Application routing and signup page
-│           ├── index.css         # Global styles
-│           ├── components/
-│           │   ├── LoginForm.jsx
-│           │   ├── LoginForm.css
-│           │   ├── Navbar.jsx
-│           │   ├── Navbar.css
-│           │   ├── ParticipantNavbar.jsx
-│           │   ├── ParticipantNavbar.css
-│           │   ├── OrganizerNavbar.jsx
-│           │   ├── OrganizerNavbar.css
-│           │   ├── Sidebar.jsx
-│           │   └── Sidebar.css
-│           └── pages/
-│               ├── Login.jsx
-│               ├── Login.css
-│               ├── Events.jsx
-│               ├── Events.css
-│               ├── Register.jsx
-│               ├── Register.css
-│               ├── Pregister.jsx
-│               ├── pregister.css
-│               ├── ParticipantDashboard.jsx
-│               ├── ParticipantDashboard.css
-│               ├── OrganizerDashboard.jsx
-│               ├── OrganizerDashboard.css
-│               ├── Contact.jsx
-│               └── Contact.css
-│
-├── PROJECT_REPORT.md             # Project documentation
-├── .gitignore                    # Git ignore rules
-└── README.md                     # Project documentation
+│       ├── auth.js
+│       ├── organizer.js
+│       ├── participant.js
+│       ├── register.js
+│       └── signup.js
+└── frontend/
+    └── myapp/
+        ├── .env                   # local, ignored Vite API URL
+        ├── index.html
+        ├── package.json
+        ├── vite.config.js
+        └── src/
+            ├── App.jsx
+            ├── index.css
+            ├── main.jsx
+            ├── theme.css
+            ├── components/
+            │   ├── ConfirmModal.jsx
+            │   ├── Footer.jsx
+            │   ├── LoginForm.css
+            │   ├── LoginForm.jsx
+            │   ├── Navbar.css
+            │   ├── Navbar.jsx
+            │   ├── OrganizerNavbar.css
+            │   ├── OrganizerNavbar.jsx
+            │   ├── PageLayout.jsx
+            │   ├── ParticipantNavbar.css
+            │   ├── ParticipantNavbar.jsx
+            │   ├── Sidebar.css
+            │   ├── Sidebar.jsx
+            │   ├── ThemedDatePicker.css
+            │   ├── ThemedDatePicker.jsx
+            │   ├── ToastProvider.jsx
+            │   └── shared.css
+            ├── context/
+            │   └── AuthContext.jsx
+            ├── pages/
+            │   ├── Contact.css
+            │   ├── Contact.jsx
+            │   ├── Events.css
+            │   ├── Events.jsx
+            │   ├── Login.css
+            │   ├── Login.jsx
+            │   ├── OrganizerAuth.jsx
+            │   ├── OrganizerDashboard.css
+            │   ├── OrganizerDashboard.jsx
+            │   ├── ParticipantAuth.css
+            │   ├── ParticipantAuth.jsx
+            │   ├── ParticipantDashboard.css
+            │   ├── ParticipantDashboard.jsx
+            │   ├── Pregister.jsx
+            │   ├── Register.css
+            │   ├── Register.jsx
+            │   └── pregister.css
+            └── utils/
+                ├── api.js
+                ├── toast.js
+                └── useToast.js
 ```
 
-## Usage
+`Pregister.jsx` is the canonical authenticated participant registration page used by Browse Events. `Register.jsx` and `Register.css` are still present as a legacy registration page; they are not the `Pregister.jsx` flow.
 
-Once the frontend and backend servers are running, access the application by opening the following URL in your browser:
+## Known limitations
 
-```text
-http://localhost:5173
-```
-
----
-
-### Participant Workflow
-
-#### 1. Create an Account
-
-- Open the application in your browser.
-- On the **Sign Up** page, enter:
-  - Full Name
-  - Email Address
-  - Password
-  - Phone Number
-- Click **Sign Up** to create a participant account.
-
-#### 2. Login
-
-- Navigate to the **Login** page.
-- Select **Login as Participant**.
-- Enter your registered email address and password.
-- Click **Login** to access your account.
-
-#### 3. Browse Events
-
-- Open the **Events** page.
-- Browse the available technical events across different categories.
-- Select any event to view its details.
-
-#### 4. Register for an Event
-
-- Click **Register Now** for the desired event.
-- Complete the registration form.
-- If you are logged in, the registration will automatically be associated with your participant account.
-
-#### 5. Participant Dashboard
-
-Navigate to the Participant Dashboard to:
-
-- View all registered events.
-- View registration details.
-- View registration IDs.
-- Track your event registration history.
-
----
-
-### Organizer Workflow
-
-#### 1. Login
-
-Navigate to the **Login** page and select **Login as Organizer**.
-
-Use the default organizer credentials:
-
-| Field | Value |
-|--------|-------|
-| Email | admin@techfest.com |
-| Password | admin123 |
-
-#### 2. Organizer Dashboard
-
-After successful authentication, the Organizer Dashboard provides access to the following modules.
-
-##### Dashboard
-
-- View total events.
-- View total registered participants.
-- View upcoming events.
-- View completed events.
-- Monitor overall event statistics.
-
-##### Event Management
-
-Organizers can perform complete CRUD operations.
-
-- Create new events.
-- View all events.
-- Update existing event details.
-- Delete events.
-
-Each event includes:
-
-- Event Name
-- Description
-- Date
-- Time
-- Venue
-
-##### Participant Management
-
-View registrations submitted by participants, including:
-
-- Registration ID
-- Participant Name
-- Email Address
-- Contact Number
-- Registered Event
-- Registration Date and Time
-
----
-
-## Application Flow
-
-1. Create a participant account.
-2. Login as a Participant or Organizer.
-3. Browse available technical events.
-4. Register for preferred events.
-5. Participants can monitor their registrations through the Participant Dashboard.
-6. Organizers can manage events and registrations through the Organizer Dashboard.
+- The backend `dev` script runs plain `node server.js`; it does not watch or restart automatically.
+- Automated backend tests are not configured. `npm test` is still the default placeholder.
+- Organizer creation is manual through bcrypt plus SSMS; there is no organizer signup UI.
+- The local session cookie is configured for HTTP development (`secure: false`); production deployment requires HTTPS and production cookie/security configuration.
+- Sponsor and result database tables exist in the schema, but complete sponsor/results management screens and APIs are not exposed as a finished end-user workflow.
+- The application currently assumes a SQL Server database is reachable using the configured environment values.

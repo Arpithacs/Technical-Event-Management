@@ -19,6 +19,12 @@
   --text-secondary: #475569;
   --text-muted: #64748B;
   --border: #E2E8F0;
+  --color-text-primary: #0F172A;
+  --color-text-secondary: #475569;
+  --color-text-muted: #64748B;
+  --color-surface: #FFFFFF;
+  --color-placeholder: #64748B;
+  --color-on-dark: #FFFFFF;
   --shadow-card: 0 8px 24px rgba(15, 23, 42, .08);
   --shadow-card-hover: 0 14px 32px rgba(15, 23, 42, .12);
 }
@@ -47,3 +53,15 @@ h1, h2, h3, h4 { font-weight: 600; }
 .auth-tabs { border-color: var(--color-accent) !important; }
 .auth-tab { color: var(--color-accent) !important; }
 .auth-tab.active { background: var(--color-accent) !important; color: #fff !important; }
+
+/* Contrast contract: all text on light application surfaces is token-driven. */
+.register-page, .auth-page, .contact-container, .events-page, .dashboard-container, .org-dashboard { color: var(--color-text-primary) !important; }
+.register-page h1, .register-page h2, .auth-page h1, .contact-title, .events-page h1, .org-dashboard h1, .org-dashboard h2, .dashboard-title, .dashboard-content h2 { color: var(--color-text-primary) !important; }
+.register-page p, .auth-subtitle, .contact-subtitle, .events-header p, .dashboard-subtitle { color: var(--color-text-secondary) !important; }
+.register-form, .event-form, .auth-form, .contact-form { color: var(--color-text-primary) !important; }
+.register-form label, .event-form label, .auth-form label, .contact-form label { color: var(--color-text-primary) !important; }
+.register-form input, .register-form select, .register-form textarea, .event-form input, .event-form select, .event-form textarea, .auth-form input, .contact-form input, .contact-form textarea, .popup-box input, .popup-box select, .popup-box textarea { background: var(--color-surface) !important; color: var(--color-text-primary) !important; border-color: var(--border) !important; }
+.register-form input::placeholder, .register-form textarea::placeholder, .event-form input::placeholder, .event-form textarea::placeholder, .auth-form input::placeholder, .contact-form input::placeholder, .contact-form textarea::placeholder { color: var(--color-placeholder) !important; opacity: 1; }
+.content-box, .event-form-section, .event-list-section, .stat-card, .event-card, .contact-card, .auth-card { color: var(--color-text-primary) !important; background: var(--color-surface) !important; }
+.styled-table td, .event-card p, .event-card h2, .event-card h3 { color: var(--color-text-primary) !important; }
+.styled-table thead th { color: var(--color-on-dark) !important; }
