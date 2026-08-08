@@ -151,6 +151,7 @@ Technical-Event-Management/
 ├── backend/
 │   ├── .env.example
 │   ├── db.js
+│   ├── migrate-judge-assignment.js
 │   ├── package.json
 │   ├── schema.sql
 │   ├── seed_organizer.sql
