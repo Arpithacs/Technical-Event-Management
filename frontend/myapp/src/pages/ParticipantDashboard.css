@@ -118,6 +118,16 @@
   border: 1px dashed #c4b5fd;
   border-radius: 12px;
   color: #5b21b6;
+  text-align: center;
+}
+
+.empty-state-icon {
+  font-size: 2rem;
+  margin-bottom: 8px;
+}
+
+.empty-state p {
+  margin: 0 0 16px;
 }
 
 .event-id {
@@ -176,6 +186,16 @@
   margin-top: 20px;
   display: flex;
   gap: 15px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.ticket-qr {
+  margin-right: auto;
+  padding: 8px;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
 }
 
 .update-btn {

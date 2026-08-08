@@ -1,19 +1,18 @@
 
 .register-page {
-  min-height: 100vh;
-  background: linear-gradient(to bottom right, #1a0b2e, #16213e, #0f3460);
-  color: #fff;
+  min-height: 420px;
+  background: var(--color-bg);
+  color: var(--color-text-primary);
   font-family: "Poppins", sans-serif;
-  padding-top: 100px;
-  padding-bottom: 40px;
+  padding: 12px 0 40px;
   display: flex;
   flex-direction: column;
   align-items: center;
 }
 
 .register-form {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: var(--color-surface);
+  border: 1px solid var(--border);
   border-radius: 12px;
   padding: 30px 40px;
   width: 100%;
@@ -21,7 +20,7 @@
   display: flex;
   flex-direction: column;
   gap: 15px;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+  box-shadow: var(--shadow-card);
 }
 
 .register-form-title {
@@ -33,7 +32,7 @@
 
 .register-form-subtitle {
   font-size: 14px;
-  color: #bbb;
+  color: var(--text-secondary);
   text-align: center;
   margin: 0 0 10px;
 }
@@ -54,16 +53,17 @@
   border: none;
   outline: none;
   font-size: 15px;
-  background: rgba(255, 255, 255, 0.1);
-  color: #fff;
+  background: var(--color-surface);
+  color: var(--color-text-primary);
+  border: 1px solid var(--border);
 }
 
 .register-form input::placeholder {
-  color: #bbb;
+  color: var(--text-muted);
 }
 
 .register-form select {
-  color: #bbb;
+  color: var(--text-secondary);
 }
 
 .register-form select option {
@@ -71,7 +71,7 @@
 }
 
 .submit-btn {
-  background: linear-gradient(to right, #ff79c6, #bd93f9);
+  background: var(--color-accent);
   border: none;
   padding: 12px 0;
   border-radius: 8px;
@@ -84,7 +84,7 @@
 }
 
 .submit-btn:hover {
-  background: linear-gradient(to right, #ff4ebc, #a46bff);
+  background: #1D4ED8;
 }
 
 /* Success / Error messages */

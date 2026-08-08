@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
+import { API_URL } from "../utils/api.js";
 
 const AuthContext = createContext(null);
 
@@ -14,7 +15,7 @@ export function AuthProvider({ children }) {
     const checkSession = async () => {
       try {
         // Check participant session
-        const pRes = await fetch("http://localhost:5000/api/participant/me", {
+        const pRes = await fetch(`${API_URL}/api/participant/me`, {
           credentials: "include",
         });
         if (!cancelled && pRes.ok) {
@@ -30,7 +31,7 @@ export function AuthProvider({ children }) {
 
       try {
         // Check organizer session
-        const oRes = await fetch("http://localhost:5000/api/organizer/me", {
+        const oRes = await fetch(`${API_URL}/api/organizer/me`, {
           credentials: "include",
         });
         if (!cancelled && oRes.ok) {
@@ -64,7 +65,7 @@ export function AuthProvider({ children }) {
 
   const logout = async () => {
     try {
-      await fetch("http://localhost:5000/api/logout", {
+      await fetch(`${API_URL}/api/logout`, {
         method: "POST",
         credentials: "include",
       });

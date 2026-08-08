@@ -1,9 +1,11 @@
 import React, { useState } from "react";
 import Navbar from "../components/Navbar";
 import "./Register.css";
-import { useLocation } from "react-router-dom";
+import { useToast } from "../utils/useToast.js";
+import { API_URL } from "../utils/api.js";
 
 const Register = () => {
+  const { showToast } = useToast();
   const [formData, setFormData] = useState({
     fullname: "",
     email: "",
@@ -29,7 +31,7 @@ const Register = () => {
     e.preventDefault();
 
     try {
-      const res = await fetch("http://localhost:5000/api/register", {
+      const res = await fetch(`${API_URL}/api/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
@@ -37,14 +39,14 @@ const Register = () => {
 
       const data = await res.json();
       if (res.ok) {
-        alert(data.message);
+        showToast(data.message || "Registration successful");
         setFormData({ fullname: "", email: "", phone: "", event: "" });
       } else {
-        alert(data.message || "Something went wrong!");
+        showToast(data.message || "Something went wrong!", "error");
       }
     } catch (err) {
       console.error("Error submitting form:", err);
-      alert("Server error, please try again later.");
+      showToast("Server error, please try again later.", "error");
     }
   };
 

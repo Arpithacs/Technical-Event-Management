@@ -2,8 +2,11 @@ import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import ParticipantNavbar from "../components/ParticipantNavbar";
 import ConfirmModal from "../components/ConfirmModal.jsx";
-import { useToast } from "../components/ToastProvider.jsx";
+import { useToast } from "../utils/useToast.js";
 import "./ParticipantDashboard.css";
+import PageLayout from "../components/PageLayout.jsx";
+import { QRCodeSVG } from "qrcode.react";
+import { API_URL } from "../utils/api.js";
 
 const ParticipantDashboard = () => {
   const [registrations, setRegistrations] = useState([]);
@@ -15,7 +18,7 @@ const ParticipantDashboard = () => {
   const fetchRegistrations = async () => {
     try {
       const res = await fetch(
-        "http://localhost:5000/api/participant/registrations",
+        `${API_URL}/api/participant/registrations`,
         { method: "GET", credentials: "include" }
       );
       const data = await res.json();
@@ -35,7 +38,7 @@ const ParticipantDashboard = () => {
           }
         });
 
-        setStats({ total: data.total || regs.length, upcoming: upc, completed: comp });
+        setStats({ total: regs.length, upcoming: upc, completed: comp });
       } else {
         console.log("Not logged in or unauthorized");
       }
@@ -54,25 +57,40 @@ const ParticipantDashboard = () => {
 
     try {
       const res = await fetch(
-        `http://localhost:5000/api/participant/registrations/${regId}`,
+        `${API_URL}/api/participant/registrations/${regId}`,
         { method: "DELETE", credentials: "include" }
       );
       const data = await res.json();
       if (res.ok) {
         showToast("Registration cancelled");
-        fetchRegistrations(); // refresh
+        setRegistrations((current) => {
+          const remaining = current.filter((registration) => registration.id !== regId);
+          const now = new Date();
+          const upcoming = remaining.filter((registration) => registration.event_date && new Date(registration.event_date) >= now).length;
+          setStats({ total: remaining.length, upcoming, completed: remaining.length - upcoming });
+          return remaining;
+        });
       } else {
-        alert(data.message || "Failed to cancel registration");
+        showToast(data.message || "Failed to cancel registration", "error");
       }
     } catch (err) {
       console.error("Cancel error:", err);
-      alert("Server error. Please try again.");
+      showToast("Server error. Please try again.", "error");
     }
   };
 
   const downloadTicket = (reg) => {
-    const content = `TECHFEST PORTAL\n\nEVENT PASS\nRegistration ID: #${reg.id}\nParticipant: ${reg.fullname}\nEvent: ${reg.event_name}\nDate: ${new Date(reg.event_date).toLocaleDateString()}\nVenue: ${reg.location}`;
-    const link = document.createElement("a"); link.href = URL.createObjectURL(new Blob([content], { type: "text/plain" })); link.download = `techfest-pass-${reg.id}.txt`; link.click(); URL.revokeObjectURL(link.href); showToast("Event pass downloaded");
+    const qr = document.getElementById(`ticket-qr-${reg.id}`);
+    if (!qr) {
+      showToast("Unable to generate the event ticket.", "error");
+      return;
+    }
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(new Blob([qr.outerHTML], { type: "image/svg+xml" }));
+    link.download = `techfest-ticket-${reg.id}.svg`;
+    link.click();
+    URL.revokeObjectURL(link.href);
+    showToast("Ticket QR code downloaded");
   };
 
   if (loading) return <p style={{ textAlign: "center", marginTop: "100px" }}>Loading...</p>;
@@ -80,6 +98,7 @@ const ParticipantDashboard = () => {
   return (
     <>
       <ParticipantNavbar />
+      <PageLayout title="Participant Dashboard">
       <div className="dashboard-container">
         <section className="dashboard-content">
           <h1 className="dashboard-title">Participant Dashboard</h1>
@@ -118,7 +137,11 @@ const ParticipantDashboard = () => {
           </div>
 
           {registrations.length === 0 ? (
-            <p className="empty-state">🎟️ No registrations yet — browse events to get started!</p>
+            <div className="empty-state">
+              <div className="empty-state-icon" aria-hidden="true">🎟️</div>
+              <p>You haven't registered for any events yet</p>
+              <Link to="/events" className="browse-more-btn">Browse Events</Link>
+            </div>
           ) : (
             registrations.map((reg) => {
               const isUpcoming = reg.event_date && new Date(reg.event_date) >= new Date();
@@ -158,13 +181,16 @@ const ParticipantDashboard = () => {
                   </div>
 
                   <div className="event-actions">
+                    <div className="ticket-qr" aria-label={`QR code for registration ${reg.id}`}>
+                      <QRCodeSVG id={`ticket-qr-${reg.id}`} value={String(reg.id)} size={88} />
+                    </div>
                     <button
                       className="cancel-btn"
                       onClick={() => setPendingCancel(reg)}
                     >
                       Cancel Registration
                     </button>
-                    <button className="update-btn" onClick={() => downloadTicket(reg)}>Download Ticket / Pass</button>
+                    <button className="update-btn" onClick={() => downloadTicket(reg)}>Download Ticket</button>
                   </div>
                 </div>
               );
@@ -172,7 +198,14 @@ const ParticipantDashboard = () => {
           )}
         </section>
       </div>
-      <ConfirmModal open={!!pendingCancel} action="cancel registration for" itemName={pendingCancel?.event_name} onClose={() => setPendingCancel(null)} onConfirm={() => { handleCancel(pendingCancel.id); setPendingCancel(null); }} />
+      </PageLayout>
+      <ConfirmModal
+        isOpen={!!pendingCancel}
+        title="Cancel registration"
+        message={`Are you sure you want to cancel registration for ${pendingCancel?.event_name}?`}
+        onCancel={() => setPendingCancel(null)}
+        onConfirm={() => { handleCancel(pendingCancel.id); setPendingCancel(null); }}
+      />
     </>
   );
 };

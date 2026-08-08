@@ -4,7 +4,9 @@ import { useAuth } from "../context/AuthContext.jsx";
 import Navbar from "../components/Navbar";
 import ParticipantNavbar from "../components/ParticipantNavbar";
 import OrganizerNavbar from "../components/OrganizerNavbar";
+import PageLayout from "../components/PageLayout.jsx";
 import "./Events.css";
+import { API_URL } from "../utils/api.js";
 
 const Events = () => {
   const navigate = useNavigate();
@@ -16,7 +18,7 @@ const Events = () => {
   const [scope, setScope] = useState("all");
 
   useEffect(() => {
-    fetch("http://localhost:5000/api/organizer/events")
+    fetch(`${API_URL}/api/organizer/events`)
       .then((res) => res.json())
       .then((data) => {
         setEvents(data.events || []);
@@ -27,11 +29,11 @@ const Events = () => {
 
   useEffect(() => {
     if (role !== "participant") return;
-    fetch("http://localhost:5000/api/participant/registrations", { credentials: "include" })
+    fetch(`${API_URL}/api/participant/registrations`, { credentials: "include" })
       .then((res) => res.json()).then((data) => setRegisteredIds((data.registrations || []).map((r) => r.event_id)));
   }, [role]);
 
-  const filteredEvents = events.filter((event) => (scope === "all" || event.event_scope === scope) && `${event.event_name} ${event.description || ""}`.toLowerCase().includes(query.toLowerCase()));
+  const filteredEvents = events.filter((event) => (scope === "all" || event.event_scope === scope) && event.event_name.toLowerCase().includes(query.toLowerCase()));
 
   const handleRegisterClick = (event) => {
     if (role === "participant") {
@@ -62,13 +64,13 @@ const Events = () => {
   return (
     <>
       {renderNavbar()}
+      <PageLayout title="Browse Events">
       <div className="events-page">
         <div className="events-container">
           <div className="events-header">
             <h1>Technical Events</h1>
             <p>Explore our exciting technical competitions</p>
           </div>
-
           {loading ? (
             <p style={{ textAlign: "center", marginTop: "60px" }}>
               Loading events...
@@ -80,10 +82,8 @@ const Events = () => {
           ) : (
             <><div className="event-filters"><input value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search events" />{[["all","All"],["intra-college","Intra-College"],["inter-college","Inter-College"],["zonal","Zonal"]].map(([value,label]) => <button key={value} onClick={() => setScope(value)} className={scope === value ? "filter-active" : ""}>{label}</button>)}</div><div className="events-grid">
               {filteredEvents.map((event) => {
-                const isFull =
-                  event.capacity &&
-                  event.seats_left !== null &&
-                  event.seats_left <= 0;
+                const isFull = Number(event.seats_left) === 0;
+                const isRegistered = registeredIds.some((id) => String(id) === String(event.event_id));
 
                 return (
                   <div
@@ -116,11 +116,11 @@ const Events = () => {
                     </div>
 
                     <button
-                      className={`register-btn ${isFull || registeredIds.includes(event.event_id) ? "disabled" : ""} ${registeredIds.includes(event.event_id) ? "registered" : ""}`}
-                      disabled={isFull || registeredIds.includes(event.event_id)}
+                      className={`register-btn ${isRegistered ? "registered" : ""} ${isFull && !isRegistered ? "disabled" : ""}`}
+                      disabled={isFull || isRegistered}
                       onClick={() => handleRegisterClick(event)}
                     >
-                      {registeredIds.includes(event.event_id) ? "Registered" : isFull
+                      {isRegistered ? "Registered" : isFull
                         ? "Sold Out"
                         : role === "participant"
                           ? "Register"
@@ -132,6 +132,7 @@ const Events = () => {
           )}
         </div>
       </div>
+      </PageLayout>
     </>
   );
 };

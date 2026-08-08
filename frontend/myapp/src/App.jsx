@@ -2,6 +2,7 @@ import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "./context/AuthContext.jsx";
 import Navbar from "./components/Navbar";
+import PageLayout from "./components/PageLayout.jsx";
 import "./index.css";
 
 const App = () => {
@@ -20,6 +21,7 @@ const App = () => {
   return (
     <div>
       <Navbar />
+      <PageLayout title="TechFest Portal" className="landing-shell">
       <section className="landing-page">
         <div className="landing-container">
           <h1 className="landing-title">Welcome to TechFest Portal</h1>
@@ -81,6 +83,7 @@ const App = () => {
           </div>
         </div>
       </section>
+      </PageLayout>
     </div>
   );
 };

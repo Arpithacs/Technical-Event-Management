@@ -1,16 +1,19 @@
 import React, { useState, useRef, useEffect } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext.jsx";
+import { useToast } from "../utils/useToast.js";
 import "./ParticipantNavbar.css";
 
 const ParticipantNavbar = () => {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
+  const { showToast } = useToast();
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef(null);
 
   const handleLogout = async () => {
     await logout();
+    showToast("Logged out successfully");
     navigate("/");
   };
 

@@ -3,10 +3,13 @@ import { useAuth } from "../context/AuthContext.jsx";
 import Navbar from "../components/Navbar";
 import ParticipantNavbar from "../components/ParticipantNavbar";
 import OrganizerNavbar from "../components/OrganizerNavbar";
+import { useToast } from "../utils/useToast.js";
 import "./Contact.css";
+import PageLayout from "../components/PageLayout.jsx";
 
 const Contact = () => {
   const { role, loading: authLoading } = useAuth();
+  const { showToast } = useToast();
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -23,7 +26,7 @@ const Contact = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    alert("Message sent successfully!");
+    showToast("Message sent successfully", "success");
     setFormData({
       name: "",
       email: "",
@@ -43,6 +46,7 @@ const Contact = () => {
     <>
       {renderNavbar()}
 
+      <PageLayout title="Contact Us">
       <div className="contact-container">
         <div className="contact-card">
           <h2 className="contact-title">Contact Us</h2>
@@ -97,7 +101,8 @@ const Contact = () => {
             <p>📞 +91 9876543210</p>
           </div>
         </div>
-      </div>
+        </div>
+      </PageLayout>
     </>
   );
 };

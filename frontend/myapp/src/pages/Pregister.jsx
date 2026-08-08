@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "../context/AuthContext.jsx";
-import { useToast } from "../components/ToastProvider.jsx";
+import { useToast } from "../utils/useToast.js";
 import ParticipantNavbar from "../components/ParticipantNavbar";
 import "./pregister.css";
+import { API_URL } from "../utils/api.js";
+import PageLayout from "../components/PageLayout.jsx";
 
 const Pregister = () => {
   const { user } = useAuth();
@@ -38,7 +40,7 @@ const Pregister = () => {
   }, [user]);
 
   useEffect(() => {
-    fetch("http://localhost:5000/api/organizer/events")
+    fetch(`${API_URL}/api/organizer/events`)
       .then((res) => res.json())
       .then((data) => {
         setEvents(data.events || []);
@@ -50,7 +52,7 @@ const Pregister = () => {
         }
       })
       .catch(() => setLoading(false));
-  }, []);
+  }, [searchParams]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -63,7 +65,7 @@ const Pregister = () => {
     setMsgType("");
 
     try {
-      const res = await fetch("http://localhost:5000/api/register", {
+      const res = await fetch(`${API_URL}/api/register`, {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
@@ -85,6 +87,7 @@ const Pregister = () => {
       }
     } catch (err) {
       console.error("Error submitting form:", err);
+      showToast("Server error, please try again later.", "error");
       setSubmitMsg("Server error, please try again later.");
       setMsgType("error");
     }
@@ -94,6 +97,7 @@ const Pregister = () => {
     <>
       <ParticipantNavbar />
 
+      <PageLayout title="Event Registration">
       <div className="register-page">
         <form className="register-form" onSubmit={handleSubmit}>
           <h2 className="register-form-title">Event Registration</h2>
@@ -172,6 +176,7 @@ const Pregister = () => {
           )}
         </form>
       </div>
+      </PageLayout>
     </>
   );
 };

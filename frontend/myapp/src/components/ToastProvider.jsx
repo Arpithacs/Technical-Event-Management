@@ -1,16 +1,23 @@
-import React, { createContext, useContext, useState } from "react";
+import React from "react";
+import { Toaster } from "react-hot-toast";
 import "./shared.css";
 
-const ToastContext = createContext(null);
-export const ToastProvider = ({ children }) => {
-  const [toasts, setToasts] = useState([]);
-  const showToast = (message, type = "success") => {
-    const id = Date.now();
-    setToasts((items) => [...items, { id, message, type }]);
-    setTimeout(() => setToasts((items) => items.filter((item) => item.id !== id)), 3500);
-  };
-  return <ToastContext.Provider value={{ showToast }}>
-    {children}<div className="toast-stack">{toasts.map((toast) => <div key={toast.id} className={`toast ${toast.type}`}>{toast.message}</div>)}</div>
-  </ToastContext.Provider>;
-};
-export const useToast = () => useContext(ToastContext);
+export const ToastProvider = ({ children }) => (
+  <>
+    {children}
+    <Toaster
+      position="top-right"
+      toastOptions={{
+        duration: 3500,
+        style: {
+          background: "var(--color-surface)",
+          color: "var(--color-text-primary)",
+          border: "1px solid var(--border)",
+          boxShadow: "var(--shadow-card)",
+        },
+        success: { iconTheme: { primary: "var(--color-success)", secondary: "#fff" } },
+        error: { iconTheme: { primary: "var(--color-error)", secondary: "#fff" } },
+      }}
+    />
+  </>
+);

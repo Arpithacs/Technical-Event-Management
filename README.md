@@ -204,10 +204,18 @@ Install the required dependencies.
 npm install
 ```
 
+Create `Technical-Event-Management/.env` at the project root with the database settings and a long random `SESSION_SECRET`. Do not commit this file; use `backend/.env.example` as a template.
+
 Start the Express server.
 
 ```bash
 npm start
+```
+
+For development, run:
+
+```bash
+npm run dev
 ```
 
 The backend server will start at:
@@ -224,6 +232,12 @@ Open a new terminal and navigate to the frontend directory.
 
 ```bash
 cd frontend/myapp
+```
+
+Create `Technical-Event-Management/frontend/myapp/.env` with:
+
+```env
+VITE_API_URL=http://localhost:5000
 ```
 
 Install the required dependencies.
@@ -424,4 +438,3 @@ View registrations submitted by participants, including:
 4. Register for preferred events.
 5. Participants can monitor their registrations through the Participant Dashboard.
 6. Organizers can manage events and registrations through the Organizer Dashboard.
-

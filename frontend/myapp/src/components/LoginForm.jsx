@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import "./LoginForm.css";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { useToast } from "../utils/useToast.js";
+import { API_URL } from "../utils/api.js";
 
 axios.defaults.withCredentials = true;
 
@@ -10,6 +12,7 @@ const LoginForm = ({ userType, onClose }) => {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const navigate = useNavigate();
+  const { showToast } = useToast();
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -18,8 +21,8 @@ const LoginForm = ({ userType, onClose }) => {
     // ⭐ CHOOSE CORRECT API BASED ON USER TYPE
     const url =
       userType === "organizer"
-        ? "http://localhost:5000/api/organizer/login"
-        : "http://localhost:5000/api/login";
+        ? `${API_URL}/api/organizer/login`
+        : `${API_URL}/api/login`;
 
     try {
       const res = await axios.post(
@@ -29,7 +32,7 @@ const LoginForm = ({ userType, onClose }) => {
       );
 
       if (res.data.success) {
-        alert("Login successful!");
+        showToast("Login successful");
 
         if (userType === "participant") {
           navigate("/participant/dashboard");
@@ -39,10 +42,12 @@ const LoginForm = ({ userType, onClose }) => {
 
         onClose();
       } else {
+        showToast(res.data.message || "Login failed", "error");
         setError(res.data.message);
       }
     } catch (err) {
       console.error("Login Error:", err);
+      showToast("Server error. Please try again later.", "error");
       setError("Server error. Please try again later.");
     }
   };

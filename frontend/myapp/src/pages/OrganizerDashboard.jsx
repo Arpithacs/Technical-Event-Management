@@ -1,14 +1,18 @@
 import React, { useEffect, useState } from "react";
 import OrganizerNavbar from "../components/OrganizerNavbar.jsx";
-import { useToast } from "../components/ToastProvider.jsx";
+import { useToast } from "../utils/useToast.js";
 import ConfirmModal from "../components/ConfirmModal.jsx";
 import "./OrganizerDashboard.css";
+import { API_URL } from "../utils/api.js";
+import PageLayout from "../components/PageLayout.jsx";
 
 export default function OrganizerDashboard() {
   const { showToast } = useToast();
   const [confirmation, setConfirmation] = useState(null);
   const [participantSearch, setParticipantSearch] = useState("");
   const [eventSearch, setEventSearch] = useState("");
+  const [participantPage, setParticipantPage] = useState(1);
+  const [eventPage, setEventPage] = useState(1);
   const [selected, setSelected] = useState("dashboard");
 
   // SUMMARY
@@ -54,7 +58,7 @@ export default function OrganizerDashboard() {
 
   /* -------------------- Fetch Summary ------------------ */
   useEffect(() => {
-    fetch("http://localhost:5000/api/organizer/summary", {
+    fetch(`${API_URL}/api/organizer/summary`, {
       credentials: "include",
     })
       .then((res) => res.json())
@@ -65,7 +69,7 @@ export default function OrganizerDashboard() {
   /* -------------------- Fetch Participants ------------------ */
   useEffect(() => {
     if (selected === "participants") {
-      fetch("http://localhost:5000/api/organizer/registrations", {
+      fetch(`${API_URL}/api/organizer/registrations`, {
         credentials: "include",
       })
         .then((res) => res.json())
@@ -77,7 +81,7 @@ export default function OrganizerDashboard() {
   /* -------------------- Fetch Events (All Events) ------------------ */
   useEffect(() => {
     if (selected === "events") {
-      fetch("http://localhost:5000/api/organizer/events", {
+      fetch(`${API_URL}/api/organizer/events`, {
         credentials: "include",
       })
         .then((res) => res.json())
@@ -87,23 +91,23 @@ export default function OrganizerDashboard() {
   }, [selected]);
 
   useEffect(() => {
-    if (selected !== "allotment") return;
+    if (selected !== "judges") return;
 
     Promise.all([
-      fetch("http://localhost:5000/api/organizer/judges", { credentials: "include" }).then((res) => res.json()),
-      fetch("http://localhost:5000/api/organizer/events", { credentials: "include" }).then((res) => res.json()),
+      fetch(`${API_URL}/api/organizer/judges`, { credentials: "include" }).then((res) => res.json()),
+      fetch(`${API_URL}/api/organizer/events`, { credentials: "include" }).then((res) => res.json()),
     ])
       .then(([judgeData, eventData]) => {
         setJudges(judgeData.judges || []);
         setEvents(eventData.events || []);
       })
-      .catch((err) => console.error("Allotment fetch error:", err));
+      .catch((err) => console.error("Judge fetch error:", err));
   }, [selected]);
 
   /* -------------------- Fetch My Events (Dashboard) ------------------ */
   useEffect(() => {
     if (selected === "dashboard") {
-      fetch("http://localhost:5000/api/organizer/my-events", {
+      fetch(`${API_URL}/api/organizer/my-events`, {
         credentials: "include",
       })
         .then((res) => res.json())
@@ -118,7 +122,7 @@ export default function OrganizerDashboard() {
     if (Number(eventForm.capacity) <= 0) return showToast("Capacity must be greater than 0", "error");
     if (eventForm.registration_deadline && eventForm.registration_deadline >= eventForm.date) return showToast("Registration deadline must be before the event date", "error");
 
-    fetch("http://localhost:5000/api/organizer/add-event", {
+    fetch(`${API_URL}/api/organizer/add-event`, {
       method: "POST",
       credentials: "include",
       headers: { "Content-Type": "application/json" },
@@ -148,14 +152,14 @@ export default function OrganizerDashboard() {
       })
       .catch((err) => {
         console.error("Add event error:", err);
-        alert("Failed to add event");
+        showToast("Failed to add event", "error");
       });
   };
 
   /* -------------------- Delete Event ------------------ */
   const deleteEvent = (id) => {
 
-    fetch(`http://localhost:5000/api/organizer/delete-event/${id}`, {
+    fetch(`${API_URL}/api/organizer/delete-event/${id}`, {
       method: "DELETE",
       credentials: "include",
     })
@@ -163,7 +167,7 @@ export default function OrganizerDashboard() {
       .then((data) => {
         showToast(data.message || "Event deleted");
 
-        fetch("http://localhost:5000/api/organizer/my-events", {
+        fetch(`${API_URL}/api/organizer/my-events`, {
           credentials: "include",
         })
           .then((res) => res.json())
@@ -177,7 +181,7 @@ export default function OrganizerDashboard() {
   };
 
   const refreshJudges = () => {
-    fetch("http://localhost:5000/api/organizer/judges", { credentials: "include" })
+    fetch(`${API_URL}/api/organizer/judges`, { credentials: "include" })
       .then((res) => res.json())
       .then((data) => setJudges(data.judges || []));
   };
@@ -185,7 +189,7 @@ export default function OrganizerDashboard() {
   const handleAddJudge = (e) => {
     e.preventDefault();
     if (!/^\d{10}$/.test(judgeForm.contact_no)) return showToast("Contact number must be exactly 10 digits", "error");
-    fetch(`http://localhost:5000/api/organizer/judges${editingJudgeId ? `/${editingJudgeId}` : ""}`, {
+    fetch(`${API_URL}/api/organizer/judges${editingJudgeId ? `/${editingJudgeId}` : ""}`, {
       method: editingJudgeId ? "PUT" : "POST",
       credentials: "include",
       headers: { "Content-Type": "application/json" },
@@ -198,11 +202,11 @@ export default function OrganizerDashboard() {
         setEditingJudgeId(null);
         refreshJudges(); showToast(editingJudgeId ? "Judge updated" : "Judge assigned");
       })
-      .catch((err) => alert(err.message));
+      .catch((err) => showToast(err.message, "error"));
   };
 
   const deleteJudge = (id) => {
-    fetch(`http://localhost:5000/api/organizer/judges/${id}`, {
+    fetch(`${API_URL}/api/organizer/judges/${id}`, {
       method: "DELETE",
       credentials: "include",
     })
@@ -211,7 +215,7 @@ export default function OrganizerDashboard() {
         if (!data.success) throw new Error(data.message || "Failed to remove judge");
         refreshJudges(); showToast("Judge removed");
       })
-      .catch((err) => alert(err.message));
+      .catch((err) => showToast(err.message, "error"));
   };
 
   const editJudge = (judge) => {
@@ -220,8 +224,39 @@ export default function OrganizerDashboard() {
   };
 
   const filteredParticipants = participants.filter((p) => `${p.fullname} ${p.email} ${p.college_name || ""} ${p.event_name}`.toLowerCase().includes(participantSearch.toLowerCase()));
-  const filteredEvents = events.filter((e) => `${e.event_name} ${e.description || ""} ${e.location}`.toLowerCase().includes(eventSearch.toLowerCase()));
-  const exportParticipants = () => { const lines = [["ID","Name","Email","Phone","College","Event"], ...filteredParticipants.map((p) => [p.registration_id,p.fullname,p.email,p.phone,p.college_name || "",p.event_name])].map((row) => row.map((v) => `"${String(v).replaceAll('"','""')}"`).join(",")); const link=document.createElement("a"); link.href=URL.createObjectURL(new Blob([lines.join("\n")],{type:"text/csv"})); link.download="participants.csv"; link.click(); showToast("CSV exported"); };
+  const filteredEvents = events.filter((e) => `${e.event_name} ${e.location || ""}`.toLowerCase().includes(eventSearch.toLowerCase()));
+  const pageSize = 10;
+  const participantPageCount = Math.max(1, Math.ceil(filteredParticipants.length / pageSize));
+  const eventPageCount = Math.max(1, Math.ceil(filteredEvents.length / pageSize));
+  const visibleParticipants = filteredParticipants.slice((participantPage - 1) * pageSize, participantPage * pageSize);
+  const visibleEvents = filteredEvents.slice((eventPage - 1) * pageSize, eventPage * pageSize);
+  useEffect(() => {
+    setParticipantPage((page) => Math.min(page, participantPageCount));
+  }, [participantPageCount]);
+  useEffect(() => {
+    setEventPage((page) => Math.min(page, eventPageCount));
+  }, [eventPageCount]);
+  const rangeLabel = (page, total) => {
+    if (total === 0) return "Showing 0–0 of 0";
+    const start = (page - 1) * pageSize + 1;
+    return `Showing ${start}–${Math.min(page * pageSize, total)} of ${total}`;
+  };
+  const exportParticipants = () => {
+    const headers = ["ID", "Full Name", "Email", "Phone", "College", "Event", "Scope", "Registered On"];
+    const rows = filteredParticipants.map((p) => [
+      p.registration_id, p.fullname, p.email, p.phone, p.college_name || "",
+      p.event_name, p.event_scope || "", p.created_at ? new Date(p.created_at).toLocaleDateString() : "",
+    ]);
+    const csv = [headers, ...rows]
+      .map((row) => row.map((value) => `"${String(value).replaceAll('"', '""')}"`).join(","))
+      .join("\n");
+    const link = document.createElement("a");
+    link.href = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
+    link.download = "participants.csv";
+    link.click();
+    URL.revokeObjectURL(link.href);
+    showToast("CSV exported");
+  };
 
   /* -------------------- OPEN EDIT POPUP ------------------ */
   const openEdit = (ev) => {
@@ -242,7 +277,7 @@ export default function OrganizerDashboard() {
     }
 
     fetch(
-      `http://localhost:5000/api/organizer/update-event/${editEvent.event_id}`,
+      `${API_URL}/api/organizer/update-event/${editEvent.event_id}`,
       {
         method: "PUT",
         credentials: "include",
@@ -260,7 +295,7 @@ export default function OrganizerDashboard() {
         showToast(data.message, data.success ? "success" : "error");
         setEditPopup(false);
 
-        fetch("http://localhost:5000/api/organizer/my-events", {
+        fetch(`${API_URL}/api/organizer/my-events`, {
           credentials: "include",
         })
           .then((res) => res.json())
@@ -272,6 +307,7 @@ export default function OrganizerDashboard() {
     <div>
       <OrganizerNavbar selected={selected} setSelected={setSelected} />
 
+      <PageLayout title="Organizer Dashboard">
       <div className="org-dashboard">
         {/* ---------------- DASHBOARD ---------------- */}
         {selected === "dashboard" && (
@@ -305,7 +341,7 @@ export default function OrganizerDashboard() {
               </div>
             </div>
 
-            {/* ---------------- YOUR EVENTS TABLE ---------------- */}
+            {/* ---------------- EVENT OVERVIEW TABLE ---------------- */}
             <h2 style={{ marginTop: "40px" }}>Event Overview</h2>
 
             <table className="styled-table">
@@ -369,7 +405,10 @@ export default function OrganizerDashboard() {
         {selected === "participants" && (
           <div className="content-box">
             <h1>All Participants</h1>
-            <div className="table-tools"><input value={participantSearch} onChange={(e) => setParticipantSearch(e.target.value)} placeholder="Search participants" /><button className="secondary-btn" onClick={exportParticipants}>Export CSV</button></div>
+            <div className="table-tools">
+              <input value={participantSearch} onChange={(e) => { setParticipantSearch(e.target.value); setParticipantPage(1); }} placeholder="Search by name, email, college, or event" />
+              <button className="secondary-btn" onClick={exportParticipants}>Export CSV</button>
+            </div>
 
             <table className="styled-table">
               <thead>
@@ -387,7 +426,7 @@ export default function OrganizerDashboard() {
 
               <tbody>
                 {filteredParticipants.length > 0 ? (
-                  filteredParticipants.slice(0, 10).map((p) => (
+                  visibleParticipants.map((p) => (
                     <tr key={p.registration_id}>
                       <td>{p.registration_id}</td>
                       <td>{p.fullname}</td>
@@ -414,6 +453,11 @@ export default function OrganizerDashboard() {
                 )}
               </tbody>
             </table>
+            <div className="pagination-controls">
+            <span>{rangeLabel(participantPage, filteredParticipants.length)}</span>
+            <button className="secondary-btn" disabled={participantPage === 1} onClick={() => setParticipantPage((page) => page - 1)}>Previous</button>
+            <button className="secondary-btn" disabled={participantPage >= participantPageCount} onClick={() => setParticipantPage((page) => page + 1)}>Next</button>
+            </div>
           </div>
         )}
 
@@ -518,7 +562,9 @@ export default function OrganizerDashboard() {
             {/* RIGHT EVENTS TABLE */}
             <div className="event-list-section">
               <h2>All Events</h2>
-              <div className="table-tools"><input value={eventSearch} onChange={(e) => setEventSearch(e.target.value)} placeholder="Search events" /><span>Showing {Math.min(filteredEvents.length, 10)} of {filteredEvents.length}</span></div>
+              <div className="table-tools">
+                <input value={eventSearch} onChange={(e) => { setEventSearch(e.target.value); setEventPage(1); }} placeholder="Search by event name or location" />
+              </div>
 
               <table className="styled-table">
                 <thead>
@@ -535,7 +581,7 @@ export default function OrganizerDashboard() {
 
                 <tbody>
                   {filteredEvents.length > 0 ? (
-                    filteredEvents.slice(0, 10).map((ev) => (
+                    visibleEvents.map((ev) => (
                       <tr key={ev.event_id}>
                         <td>{ev.event_id}</td>
                         <td>{ev.event_name}</td>
@@ -565,12 +611,17 @@ export default function OrganizerDashboard() {
                   )}
                 </tbody>
               </table>
+              <div className="pagination-controls">
+                <span>{rangeLabel(eventPage, filteredEvents.length)}</span>
+                <button className="secondary-btn" disabled={eventPage === 1} onClick={() => setEventPage((page) => page - 1)}>Previous</button>
+                <button className="secondary-btn" disabled={eventPage >= eventPageCount} onClick={() => setEventPage((page) => page + 1)}>Next</button>
+              </div>
             </div>
           </div>
         )}
 
-        {selected === "allotment" && (
-          <div className="content-box allotment-layout">
+        {selected === "judges" && (
+          <div className="content-box judges-layout">
             <section className="event-form-section">
               <h2>{editingJudgeId ? "Edit Judge Assignment" : "Assign a Judge"}</h2>
               <form className="event-form" onSubmit={handleAddJudge}>
@@ -698,7 +749,17 @@ export default function OrganizerDashboard() {
           </div>
         )}
       </div>
-      <ConfirmModal open={!!confirmation} action={confirmation?.type === "judge" ? "remove" : "delete"} itemName={confirmation?.name} onClose={() => setConfirmation(null)} onConfirm={() => { if (confirmation.type === "judge") deleteJudge(confirmation.id); else deleteEvent(confirmation.id); setConfirmation(null); }} />
+      </PageLayout>
+      <ConfirmModal
+        isOpen={!!confirmation}
+        title={confirmation?.type === "judge" ? "Remove judge" : "Delete event"}
+        message={confirmation?.type === "judge"
+          ? `Are you sure you want to remove ${confirmation?.name}?`
+          : `Are you sure you want to delete ${confirmation?.name}? This action cannot be undone.`}
+        confirmLabel={confirmation?.type === "judge" ? "Remove" : "Delete"}
+        onCancel={() => setConfirmation(null)}
+        onConfirm={() => { if (confirmation.type === "judge") deleteJudge(confirmation.id); else deleteEvent(confirmation.id); setConfirmation(null); }}
+      />
     </div>
   );
 }

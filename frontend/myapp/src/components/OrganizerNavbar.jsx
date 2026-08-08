@@ -1,16 +1,19 @@
 import React, { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext.jsx";
+import { useToast } from "../utils/useToast.js";
 import "./OrganizerNavbar.css";
 
 const OrganizerNavbar = ({ selected, setSelected }) => {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
+  const { showToast } = useToast();
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef(null);
 
   const handleLogout = async () => {
     await logout();
+    showToast("Logged out successfully");
     navigate("/");
   };
 
@@ -38,7 +41,7 @@ const OrganizerNavbar = ({ selected, setSelected }) => {
     { key: "dashboard", label: "Dashboard" },
     { key: "events", label: "Events" },
     { key: "participants", label: "Participants" },
-    { key: "allotment", label: "Judges" },
+    { key: "judges", label: "Judges" },
   ];
 
   return (

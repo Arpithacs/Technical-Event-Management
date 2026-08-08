@@ -2,8 +2,10 @@ import React, { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import { useAuth } from "../context/AuthContext.jsx";
-import { useToast } from "../components/ToastProvider.jsx";
+import { useToast } from "../utils/useToast.js";
 import "./ParticipantAuth.css";
+import { API_URL } from "../utils/api.js";
+import PageLayout from "../components/PageLayout.jsx";
 
 const ParticipantAuth = () => {
   const [activeTab, setActiveTab] = useState("login");
@@ -37,7 +39,7 @@ const ParticipantAuth = () => {
     e.preventDefault();
     setLoginError("");
     try {
-      const res = await fetch("http://localhost:5000/api/login", {
+      const res = await fetch(`${API_URL}/api/login`, {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
@@ -52,7 +54,8 @@ const ParticipantAuth = () => {
         showToast(data.message || "Login failed", "error");
         setLoginError(data.message || "Login failed");
       }
-    } catch (err) {
+    } catch {
+      showToast("Server error. Please try again.", "error");
       setLoginError("Server error. Please try again.");
     }
   };
@@ -62,7 +65,7 @@ const ParticipantAuth = () => {
     setSignupError("");
     setSignupSuccess("");
     try {
-      const res = await fetch("http://localhost:5000/api/signup", {
+      const res = await fetch(`${API_URL}/api/signup`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(signupData),
@@ -77,7 +80,8 @@ const ParticipantAuth = () => {
         showToast(data.message || "Signup failed", "error");
         setSignupError(data.message || "Signup failed");
       }
-    } catch (err) {
+    } catch {
+      showToast("Server error. Please try again.", "error");
       setSignupError("Server error. Please try again.");
     }
   };
@@ -85,6 +89,7 @@ const ParticipantAuth = () => {
   return (
     <>
       <Navbar />
+      <PageLayout title="Participant Login / Signup">
       <div className="auth-page">
         <div className="auth-card">
           <h1 className="auth-title">Participant Portal</h1>
@@ -196,6 +201,7 @@ const ParticipantAuth = () => {
           </p>
         </div>
       </div>
+      </PageLayout>
     </>
   );
 };

@@ -2,8 +2,10 @@ import React, { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import { useAuth } from "../context/AuthContext.jsx";
-import { useToast } from "../components/ToastProvider.jsx";
+import { useToast } from "../utils/useToast.js";
 import "./ParticipantAuth.css"; // reuse same styles
+import PageLayout from "../components/PageLayout.jsx";
+import { API_URL } from "../utils/api.js";
 
 const OrganizerAuth = () => {
   const navigate = useNavigate();
@@ -23,7 +25,7 @@ const OrganizerAuth = () => {
     e.preventDefault();
     setLoginError("");
     try {
-      const res = await fetch("http://localhost:5000/api/organizer/login", {
+      const res = await fetch(`${API_URL}/api/organizer/login`, {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
@@ -38,7 +40,8 @@ const OrganizerAuth = () => {
         showToast(data.message || "Invalid credentials", "error");
         setLoginError(data.message || "Invalid credentials");
       }
-    } catch (err) {
+    } catch {
+      showToast("Server error. Please try again.", "error");
       setLoginError("Server error. Please try again.");
     }
   };
@@ -46,6 +49,7 @@ const OrganizerAuth = () => {
   return (
     <>
       <Navbar />
+      <PageLayout title="Organizer Login">
       <div className="auth-page">
         <div className="auth-card">
           <h1 className="auth-title">Organizer Portal</h1>
@@ -89,6 +93,7 @@ const OrganizerAuth = () => {
           </p>
         </div>
       </div>
+      </PageLayout>
     </>
   );
 };
