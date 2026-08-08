@@ -256,8 +256,6 @@ Technical-Event-Management/
             │   ├── ParticipantDashboard.css
             │   ├── ParticipantDashboard.jsx
             │   ├── Pregister.jsx
-            │   ├── Register.css
-            │   ├── Register.jsx
             │   └── pregister.css
             └── utils/
                 ├── api.js
@@ -265,7 +263,7 @@ Technical-Event-Management/
                 └── useToast.js
 ```
 
-`Pregister.jsx` is the canonical authenticated participant registration page used by Browse Events. `Register.jsx` and `Register.css` are still present as a legacy registration page; they are not the `Pregister.jsx` flow.
+`Pregister.jsx` is the authenticated participant registration page used by Browse Events.
 
 ## Known limitations
 
