@@ -1,151 +1,254 @@
 # Technical Event Management System - Project Report
 
-This report provides an overview of the **Technical Event Management System**, detailing the technology stack, architectural design, database schema, and core features of both the frontend and backend applications.
+## 1. Project Overview
 
----
+The Technical Event Management System is a full-stack college tech-fest portal for participants, organizers, and judges. It supports intra-college, inter-college, and zonal technical events. Participants can create accounts, browse events, register, download QR tickets, and manage their registrations. Organizers can manage events, monitor participants, assign judges, and review dashboard analytics.
 
-## 1. Technology Stack
+The application is organized as a React/Vite frontend, an Express REST API, and a Microsoft SQL Server database. Authentication uses bcrypt password hashing and server-side sessions.
 
-The project is built as a modern, decoupled web application consisting of a React-based frontend and a Node.js/Express-based backend, backed by a MySQL relational database.
+## 2. Technology Stack
 
-### Frontend (Client-Side)
-- **Framework:** [React 19](https://react.dev/) - For building a dynamic, component-based user interface.
-- **Build Tool & Dev Server:** [Vite 7](https://vite.dev/) - Providing extremely fast builds and Hot Module Replacement (HMR).
-- **Routing:** [React Router DOM v7](https://reactrouter.com/) - Handles client-side routing and page transitions.
-- **Styling:** [Vanilla CSS](https://developer.mozilla.org/en-US/docs/Web/CSS) + [TailwindCSS v4](https://tailwindcss.com/) - Used to build a responsive, modern design with custom styling files (e.g., `OrganizerDashboard.css`, `Login.css`).
-- **Icons:** [Lucide React](https://lucide.dev/) - Modern and clean icon set.
-- **HTTP Client:** [Axios](https://axios-http.com/) - For making asynchronous API requests to the backend server.
+### Frontend
 
-### Backend (Server-Side)
-- **Runtime Environment:** [Node.js](https://nodejs.org/) (using ES Modules `"type": "module"`)
-- **Web Framework:** [Express.js v5](https://expressjs.com/) - To handle routing, HTTP requests, and responses.
-- **Session Management:** [express-session](https://www.npmjs.com/package/express-session) - For maintaining stateful login sessions (cookies) for both general users and organizers.
-- **CORS handling:** [cors](https://www.npmjs.com/package/cors) - Enabled to allow cross-origin resource sharing between the frontend (`http://localhost:5173`) and the backend (`http://localhost:5000`).
-- **Body Parsing:** [body-parser](https://www.npmjs.com/package/body-parser) - Parses incoming JSON request bodies.
+- React 19
+- Vite 7
+- React Router DOM 7
+- Axios
+- Vanilla CSS with shared theme tokens and responsive layouts
+- Tailwind CSS/PostCSS tooling present in the frontend package
+- Lucide React icons
+- `react-hot-toast` for action-level notifications
+- `react-datepicker` for themed date/time inputs
+- `qrcode.react` for downloadable registration tickets
+- ESLint with React hooks and refresh plugins
 
-### Database (Data Tier)
-- **Database Management System:** [MySQL](https://www.mysql.com/) (accessed via the `mysql2` driver)
-- **Database Name:** `myprojectdb`
+### Backend
 
----
+- Node.js using ES modules
+- Express 5
+- `mssql` for SQL Server access
+- `express-session` for cookie-based server sessions
+- `bcrypt` for password hashing
+- `cors`, `body-parser`, and `dotenv`
 
-## 2. System Architecture
+The project uses SQL Server and does not use MySQL or `mysql2`.
 
-The application follows a classic **3-Tier Architecture**:
+## 3. System Architecture
+
+The system follows a three-tier architecture:
 
 ```mermaid
 graph TD
-    subgraph Client Tier
-        React[React Frontend / Vite]
-    end
+    React[React + Vite Frontend]
+    Express[Node.js + Express REST API]
+    Session[Express Session Cookie]
+    SQL[(Microsoft SQL Server)]
 
-    subgraph Application Tier
-        Express[Express.js Server]
-        Session[Express Session Middleware]
-    end
-
-    subgraph Data Tier
-        MySQL[(MySQL Database)]
-    end
-
-    React <-->|HTTP REST / JSON / Cookies| Express
-    Express <-->|Session Store| Session
-    Express <-->|SQL Queries via mysql2| MySQL
+    React <-->|HTTP JSON and cookies| Express
+    Express --> Session
+    Express <-->|Parameterized SQL via mssql| SQL
 ```
 
----
+The frontend runs by default at `http://localhost:5173` and uses `VITE_API_URL` to call the backend at `http://localhost:5000`. Protected API routes use the authenticated session cookie and role-specific middleware.
 
-## 3. Database Schema
+## 4. Database Design
 
-Based on the backend database queries, the database `myprojectdb` contains the following tables:
+The current master schema is [`backend/schema.sql`](backend/schema.sql). It recreates the tables in dependency order and uses `EventManagement` as the database name.
 
-### 1. `users` (Participants)
-Stores accounts for general users who register for events.
-- `id` (Primary Key): Unique user ID.
-- `fullname`: Participant's full name.
-- `email`: Participant's email address (used for login).
-- `password`: Account password.
-- `phone`: Participant's contact number.
+### Tables
 
-### 2. `organizer`
-Stores accounts for organizers who manage events.
-- `organizer_id` (Primary Key): Unique organizer ID.
-- `name`: Organizer's name.
-- `email`: Organizer's email address (used for login).
-- `password`: Account password.
-- `department`: Organizer's academic or corporate department.
+1. **`users`** - Participant accounts, contact information, college, and creation timestamp.
+2. **`organizer`** - Organizer accounts, department, and creation timestamp.
+3. **`events`** - Event name, description, date, time, location, scope, capacity, and registration deadline.
+4. **`sponsor`** - Sponsor directory and contribution details.
+5. **`judge`** - Organizer-managed judge directory associated with events.
+6. **`event_organizer`** - Many-to-many event/organizer junction table with a unique event-organizer constraint.
+7. **`event_sponsor`** - Many-to-many event/sponsor junction table with a unique event-sponsor constraint.
+8. **`registrations`** - Participant/event registrations with foreign keys, participant snapshot fields, timestamps, and `UNIQUE (user_id, event_id)`.
+9. **`results`** - Event results with position, score, remarks, and a unique event/user constraint.
 
-### 3. `events`
-Stores information about the technical events.
-- `event_id` (Primary Key): Unique event ID.
-- `event_name`: Title of the technical event.
-- `description`: Description of the event.
-- `date`: Event date.
-- `time`: Event timing.
-- `location`: Venue or online link.
-- `organizer_id` (Foreign Key): References `organizer.organizer_id`.
+`event_scope` is restricted to `intra-college`, `inter-college`, or `zonal`. Registration counts are derived from the `registrations` table rather than stored as mutable counters. User-facing seat displays use `registered_count / capacity`; `seats_left` remains available for sold-out detection.
 
-### 4. `registrations`
-Stores registrations of participants for specific events.
-- `id` (Primary Key): Unique registration ID.
-- `user_id` (Foreign Key): References `users.id`.
-- `fullname`: Participant's name for the event.
-- `email`: Participant's email for the event.
-- `phone`: Participant's phone number for the event.
-- `event_name`: Name of the registered event.
-- `created_at`: Registration timestamp.
+## 5. Authentication and Authorization
 
----
+- Participant signup and login are handled through the participant authentication flow.
+- Organizers use a separate login page and role-specific session.
+- Organizer account creation is intentionally manual: a bcrypt hash is generated locally and inserted through SSMS.
+- Session cookies are HTTP-only for local development.
+- Role-gated navigation and routes separate participant and organizer experiences.
+- Organizer event and judge operations require organizer authorization.
+- Registration cancellation is ownership-scoped to the authenticated participant.
 
-## 4. Core Features
+## 6. Implemented Features
 
-### For Participants (General Users)
-1. **Account Registration:** Sign up with name, email, password, and phone number (handled by `/api/signup`).
-2. **Authentication:** Secure login session (handled by `/api/login`).
-3. **Event Browsing:** View available technical events (`/events`).
-4. **Event Registration:** Register for a specific event. The user's ID is automatically linked via session cookies (`/api/register`).
-5. **Dashboard:** View all events they have registered for, including registration details and timestamps (`/participant/dashboard`).
+### Participant Portal
 
-### For Organizers
-1. **Authentication:** Separate login portal (`/api/organizer/login`).
-2. **Dashboard Summary:** View key metrics:
-   - Total events organized by them.
-   - Total participant registrations.
-   - Number of upcoming vs. completed events.
-3. **Event Management (CRUD):**
-   - **Create:** Add new events with detailed information (`/api/organizer/add-event`).
-   - **Read:** View all events or only events created by the logged-in organizer (`/api/organizer/my-events`).
-   - **Update:** Edit existing event details (`/api/organizer/update-event/:id`).
-   - **Delete:** Remove events (`/api/organizer/delete-event/:id`).
-4. **Registrations Monitoring:** View a list of all participants who registered for events (`/api/organizer/registrations`).
+- Landing page and participant authentication
+- Browse Events page with search and event-scope filters
+- Event states for Register, Registered, and Sold Out
+- Capacity and registration-deadline handling
+- Duplicate-registration protection
+- Participant dashboard with registration statistics and event details
+- Registration cancellation with confirmation modal
+- QR ticket/pass generation and download containing the registration ID
+- Empty-state guidance when the participant has no registrations
+- Toast feedback for signup, login, registration, cancellation, and logout actions
 
----
+### Organizer Portal
 
-## 5. Directory Structure
+- Organizer authentication and role-gated dashboard
+- Dashboard analytics and Event Overview
+- Event creation, editing, and deletion
+- Event search and participant search
+- Participant table with ten-row pagination and range labels
+- Filtered participant CSV export
+- Judge assignment, editing, and deletion
+- Confirmation modals for event deletion and judge removal
+- Consistent `registered_count / capacity` display across organizer event views
+
+### Shared UI Foundation
+
+- Shared `PageLayout` with centered max-width content and responsive horizontal padding
+- Consistent page-header bands and card surfaces
+- Participant and organizer navigation components
+- Shared footer
+- Global `react-hot-toast` provider and toast helper functions
+- Reusable `ConfirmModal`
+- Theme tokens for surfaces, text, borders, accent, success, and error states
+- Themed date/time picker wrapper
+- Inline validation for capacity, deadlines, phone values, and judge fields
+
+## 7. API Surface
+
+The backend is divided into route modules:
+
+- `auth.js` - participant login and session handling
+- `signup.js` - participant account creation
+- `register.js` - participant event registration and cancellation
+- `participant.js` - participant dashboard data
+- `organizer.js` - organizer login, event data, event CRUD, participant data, and judge management
+
+Representative operations include:
+
+- `POST /api/signup`
+- `POST /api/login`
+- `POST /api/organizer/login`
+- `GET /api/organizer/events`
+- `GET /api/organizer/my-events`
+- Organizer event create/update/delete endpoints
+- Participant registration and cancellation endpoints
+- Organizer registration and judge-management endpoints
+
+Event endpoints expose both a true grouped `registered_count` and a separately calculated `seats_left`. The frontend uses `seats_left` only to disable registration when an event is full.
+
+## 8. Project Structure
 
 ```text
-DBMS_PROJECT/
+Technical-Event-Management/
+├── .env
+├── README.md
+├── PROJECT_REPORT.md
 ├── backend/
-│   ├── db.js                   # MySQL Connection configuration
-│   ├── server.js               # Main Express application entry point
-│   ├── middleware/             # Authentication & authorization middlewares
-│   ├── routes/
-│   │   ├── auth.js             # Participant login route
-│   │   ├── signup.js           # Participant registration route
-│   │   ├── register.js         # Event registration route
-│   │   ├── organizer.js        # Organizer login, dashboard, and event CRUD routes
-│   │   └── participant.js      # Participant dashboard data retrieval
-│   └── package.json            # Backend Node.js dependencies
-│
+│   ├── .env.example
+│   ├── db.js
+│   ├── package.json
+│   ├── schema.sql
+│   ├── seed_organizer.sql
+│   ├── server.js
+│   ├── middleware/
+│   │   ├── authMiddleware.js
+│   │   └── organizerAuth.js
+│   └── routes/
+│       ├── auth.js
+│       ├── organizer.js
+│       ├── participant.js
+│       ├── register.js
+│       └── signup.js
 └── frontend/
     └── myapp/
-        ├── index.html          # HTML Entry point
-        ├── vite.config.js      # Vite configuration
-        ├── package.json        # Frontend React dependencies
+        ├── .env
+        ├── index.html
+        ├── package.json
+        ├── vite.config.js
         └── src/
-            ├── main.jsx        # App mounting and Client-side Routing (React Router)
-            ├── App.jsx         # Create Account / Signup page
-            ├── index.css       # Global styles (including TailwindCSS setup)
-            ├── components/     # Reusable UI elements (Navbars, Sidebar)
-            └── pages/          # Page components (Events, Dashboard, Login, etc.)
+            ├── App.jsx
+            ├── index.css
+            ├── main.jsx
+            ├── theme.css
+            ├── components/
+            │   ├── ConfirmModal.jsx
+            │   ├── Footer.jsx
+            │   ├── LoginForm.css
+            │   ├── LoginForm.jsx
+            │   ├── Navbar.css
+            │   ├── Navbar.jsx
+            │   ├── OrganizerNavbar.css
+            │   ├── OrganizerNavbar.jsx
+            │   ├── PageLayout.jsx
+            │   ├── ParticipantNavbar.css
+            │   ├── ParticipantNavbar.jsx
+            │   ├── Sidebar.css
+            │   ├── Sidebar.jsx
+            │   ├── ThemedDatePicker.css
+            │   ├── ThemedDatePicker.jsx
+            │   ├── ToastProvider.jsx
+            │   └── shared.css
+            ├── context/
+            │   └── AuthContext.jsx
+            ├── pages/
+            │   ├── Contact.css
+            │   ├── Contact.jsx
+            │   ├── Events.css
+            │   ├── Events.jsx
+            │   ├── Login.css
+            │   ├── Login.jsx
+            │   ├── OrganizerAuth.jsx
+            │   ├── OrganizerDashboard.css
+            │   ├── OrganizerDashboard.jsx
+            │   ├── ParticipantAuth.css
+            │   ├── ParticipantAuth.jsx
+            │   ├── ParticipantDashboard.css
+            │   ├── ParticipantDashboard.jsx
+            │   ├── Pregister.jsx
+            │   └── pregister.css
+            └── utils/
+                ├── api.js
+                ├── toast.js
+                └── useToast.js
 ```
+
+`Pregister.jsx` is the current authenticated participant registration page. The former `Register.jsx` and `Register.css` files are not present in the current project.
+
+## 9. Setup and Operation
+
+1. Enable SQL Server mixed-mode authentication and restart the SQL Server service.
+2. Create the `EventManagement` database and a SQL login/user.
+3. Run `backend/schema.sql` in SSMS.
+4. Create the project-root `.env` using `backend/.env.example`.
+5. Create `frontend/myapp/.env` with `VITE_API_URL=http://localhost:5000`.
+6. Install and start the backend:
+
+   ```bash
+   cd backend
+   npm install
+   npm start
+   ```
+
+7. Install and start the frontend in a second terminal:
+
+   ```bash
+   cd frontend/myapp
+   npm install
+   npm run dev
+   ```
+
+Backend scripts are `npm start`, `npm run dev`, and the placeholder `npm test`. Frontend scripts are `npm run dev`, `npm run build`, `npm run lint`, and `npm run preview`.
+
+## 10. Known Limitations
+
+- The backend development script runs plain Node and does not watch or restart automatically.
+- No automated backend test suite is configured; `npm test` remains a placeholder.
+- Organizer creation is manual and has no self-service signup screen.
+- Local cookies use development HTTP settings; production requires HTTPS and hardened production configuration.
+- Sponsor and results tables exist in the schema, but complete sponsor/results management workflows are not exposed in the current UI.
+- The application requires a reachable SQL Server configured with the expected environment variables.
